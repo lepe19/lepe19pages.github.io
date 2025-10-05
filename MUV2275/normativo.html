@@ -1,0 +1,2584 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RIPS JSON 2275 — Corrección y validación de datos médicos según resolución 2275 de 2023</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2b4d8c;
+            --secondary-color: #4a6fa5;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-radius: 10px;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s ease;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+        }
+        
+        /* Header Styles */
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-logo {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar-menu {
+            border: none;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+        
+        .sidebar-menu .list-group-item {
+            border: none;
+            padding: 12px 15px;
+            transition: var(--transition);
+        }
+        
+        .sidebar-menu .list-group-item:hover {
+            background-color: rgba(43, 77, 140, 0.1);
+        }
+        
+        .sidebar-menu .list-group-item.active {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        /* Card Base Styles */
+        .card {
+            border: none;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Stats Card Base */
+        .stats-card {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: var(--light-color);
+            margin-bottom: 15px;
+        }
+        
+        .stats-card i {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .stats-card h3 {
+            font-size: 1.8rem;
+            margin: 10px 0;
+            color: var(--dark-color);
+        }
+        
+        .stats-card p {
+            color: #6c757d;
+            margin: 0;
+        }
+        
+        /* Feature Highlight */
+        .feature-highlight {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            border-left: 5px solid var(--primary-color);
+        }
+        
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        .feature-title i {
+            margin-right: 10px;
+        }
+        
+        .feature-list {
+            text-align: left;
+            max-width: 500px;
+            margin: 20px auto;
+        }
+        
+        .feature-list li {
+            margin-bottom: 10px;
+            padding-left: 10px;
+        }
+        
+        .feature-button {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: var(--transition);
+            box-shadow: 0 4px 10px rgba(43, 77, 140, 0.3);
+        }
+        
+        .feature-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(43, 77, 140, 0.4);
+        }
+        
+        /* Dashboard Styles */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .dashboard-header-title {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            background-color: rgba(43, 77, 140, 0.1);
+            color: var(--primary-color);
+            font-size: 1.5rem;
+        }
+        
+        .stat-title {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--dark-color);
+        }
+        
+        .section-title {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .recent-files, .transform-history {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            height: 100%;
+            box-shadow: var(--shadow);
+        }
+        
+        .recent-file-item, .history-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f1f1;
+        }
+        
+        .recent-file-item:last-child, .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .recent-file-icon, .history-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            background-color: rgba(43, 77, 140, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .recent-file-info, .history-content {
+            flex-grow: 1;
+        }
+        
+        .recent-file-name, .history-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .recent-file-meta, .history-meta {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        
+        .history-stats {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+        
+        .history-stat {
+            background-color: #f8f9fa;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
+        .dashboard-card {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .dashboard-title {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        .dashboard-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin: 10px 0;
+        }
+        
+        .dashboard-footer {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .file-type-indicator {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+        }
+        
+        .json-file {
+            background-color: #007bff;
+        }
+        
+        .pdf-file {
+            background-color: #dc3545;
+        }
+        
+        .xml-file {
+            background-color: #ffc107;
+        }
+        
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+        
+        .visually-hidden {
+            position: absolute !important;
+            width: 1px !important;
+            height: 1px !important;
+            padding: 0 !important;
+            margin: -1px !important;
+            overflow: hidden !important;
+            clip: rect(0, 0, 0, 0) !important;
+            white-space: nowrap !important;
+            border: 0 !important;
+        }
+        
+        /* Performance Warning */
+        .performance-warning {
+            display: flex;
+            align-items: center;
+            background-color: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid var(--warning-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .performance-warning i {
+            color: var(--warning-color);
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+        
+        /* Upload Area */
+        .upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: var(--border-radius);
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            background-color: #f8f9fa;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(43, 77, 140, 0.05);
+        }
+        
+        .upload-area i {
+            font-size: 3rem;
+            color: #6c757d;
+            margin-bottom: 15px;
+        }
+        
+        /* File Structure */
+        .folder-structure {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            background-color: #f8f9fa;
+        }
+        
+        .folder-item, .file-item {
+            padding: 5px 0;
+            margin-left: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .folder-toggle {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        
+        .folder-toggle i {
+            margin-right: 5px;
+            color: #ffc107;
+        }
+        
+        .folder-contents {
+            margin-left: 20px;
+        }
+        
+        .folder-expanded .folder-contents {
+            display: block;
+        }
+        
+        .folder-collapsed .folder-contents {
+            display: none;
+        }
+        
+        .file-actions, .folder-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .file-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            background-color: white;
+        }
+        
+        .file-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .file-editor {
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            margin-top: 15px;
+            background-color: white;
+        }
+        
+        .file-path {
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            border-bottom: 1px solid #e9ecef;
+            font-family: monospace;
+        }
+        
+        #fileContentEditor {
+            height: 400px;
+            font-family: monospace;
+            border: none;
+            resize: none;
+        }
+        
+        .file-editor-actions {
+            padding: 10px 15px;
+            border-top: 1px solid #e9ecef;
+            text-align: right;
+        }
+        
+        /* Transform Options */
+        .transform-option {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .transform-option h5 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .transform-description {
+            color: #6c757d;
+            margin-bottom: 15px;
+        }
+        
+        .transform-example {
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        
+        .replacement-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        .replacement-table th, .replacement-table td {
+            border: 1px solid #dee2e6;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        
+        .replacement-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .replacement-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .btn-transform {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: var(--transition);
+            box-shadow: 0 4px 10px rgba(43, 77, 140, 0.3);
+        }
+        
+        .btn-transform:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(43, 77, 140, 0.4);
+        }
+        
+        /* Processing Section */
+        .progress-container {
+            margin-bottom: 20px;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 5px;
+            transition: width 0.3s;
+            width: 0%;
+        }
+        
+        .processing-pulse {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .current-file {
+            display: flex;
+            align-items: center;
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 5px;
+        }
+        
+        .validation-results {
+            margin-top: 20px;
+        }
+        
+        .validation-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .valid-item {
+            background-color: rgba(40, 167, 69, 0.1);
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .invalid-item {
+            background-color: rgba(220, 53, 69, 0.1);
+            border-left: 4px solid var(--danger-color);
+        }
+        
+        .validation-item i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .valid-item i {
+            color: var(--success-color);
+        }
+        
+        .invalid-item i {
+            color: var(--danger-color);
+        }
+        
+        .transform-summary {
+            margin-bottom: 30px;
+        }
+        
+        .transform-item {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .json-viewer {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+        }
+        
+        .error-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f1f1;
+        }
+        
+        .error-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* Batch Processing */
+        .batch-processing {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .batch-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s;
+            border: 1px solid #e9ecef;
+        }
+        
+        .batch-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .batch-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            font-size: 1.8rem;
+        }
+        
+        .batch-title {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .batch-description {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .status-active {
+            background-color: var(--success-color);
+        }
+        
+        .status-inactive {
+            background-color: #6c757d;
+        }
+        
+        .status-error {
+            background-color: var(--danger-color);
+        }
+        
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .search-box input {
+            padding-right: 40px;
+        }
+        
+        .search-box i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+        
+        .tabs-container {
+            margin-bottom: 20px;
+        }
+        
+        .nav-tabs .nav-link {
+            border: none;
+            color: #6c757d;
+            font-weight: 500;
+            padding: 10px 20px;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+            background-color: transparent;
+        }
+        
+        .analytics-chart {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .chart-placeholder {
+            height: 200px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            margin-top: 15px;
+        }
+        
+        .tooltip-icon {
+            color: #6c757d;
+            margin-left: 5px;
+            cursor: help;
+        }
+        
+        /* Schedule Form */
+        .schedule-form {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .form-section {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .form-section-title {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 40px 0 20px;
+            margin-top: 50px;
+        }
+        
+        footer h5 {
+            color: #fff;
+            margin-bottom: 15px;
+        }
+        
+        footer a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        footer a:hover {
+            color: white;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .dashboard-header-actions {
+                margin-top: 15px;
+            }
+            
+            .quick-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .feature-highlight {
+                padding: 20px;
+            }
+            
+            .batch-processing {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Encabezado -->
+    <header>
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center py-3">
+                <div class="d-flex align-items-center">
+                    <div class="header-logo d-flex align-items-center justify-content-center me-3">
+                        <i class="fas fa-sync-alt" style="color: #2b4d8c; font-size: 1.8rem;"></i>
+                    </div>
+                    <div>
+                        <h1 class="h4 mb-0">RIPS JSON 2275 — Módulo de depuración y cumplimiento normativo</h1>
+                        <p class="small mb-0">Sistema para la corrección, validación y ajuste de datos RIPS en formato JSON conforme a la Resolución 2275 de 2023</p>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <p class="small mb-0"><i class="fas fa-user-circle me-2"></i>Usuario: <span id="currentUser">Administrador</span></p>
+                    <p class="small mb-0"><i class="fas fa-calendar-alt me-2"></i><span id="currentDate"></span></p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="container-fluid py-4">
+        <div class="row">
+            <div class="col-lg-3">
+                <!-- Menú Lateral -->
+                <nav aria-label="Navegación principal">
+                    <div class="card sidebar-menu shadow-sm">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="fas fa-bars me-2"></i>Menú</h5>
+                        </div>
+                        <div class="list-group list-group-flush">
+                            <a href="#" class="list-group-item list-group-item-action active" id="dashboardLink">
+                                <i class="fas fa-home me-2"></i>Dashboard
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action" id="transformLink">
+                                <i class="fas fa-sync-alt me-2"></i>Validar y corregir JSON
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action" id="batchProcessingLink">
+                                <i class="fas fa-cogs me-2"></i>Procesamiento por lotes
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <i class="fas fa-file-excel me-2"></i>Importar desde Excel
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <i class="fas fa-object-group me-2"></i>Fusionar JSON
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <i class="fas fa-file-export me-2"></i>Exportar a Excel
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <i class="fas fa-history me-2"></i>Historial
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <i class="fas fa-cog me-2"></i>Configuración
+                            </a>
+                        </div>
+                    </div>
+                </nav>
+                
+                <!-- Estadísticas -->
+                <div class="card shadow-sm mt-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Procesos de datos</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="stats-card">
+                            <i class="fas fa-exchange-alt"></i>
+                            <h3 id="transformCount">0</h3>
+                            <p>Correcciones y validaciones aplicadas</p>
+                        </div>
+                        <div class="stats-card">
+                            <i class="fas fa-file-code"></i>
+                            <h3 id="fileCount">0</h3>
+                            <p>Archivos procesados</p>
+                        </div>
+                        <div class="stats-card">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h3 id="errorCount">0</h3>
+                            <p>Errores encontrados</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Reglas Aplicadas -->
+                <div class="card shadow-sm mt-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="fas fa-list-check me-2"></i>Reglas activas</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Limpieza de numAutorizacion</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Actualización causaMotivoAtencion</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Normalización nomTecnologiaSalud</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Validación de documentos</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Transformación documentos PT</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Actualización procedimientos</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Validación tipo de usuario</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Transformación hospitalización/urgencias</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Validación codDiagnosticoPrincipal</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-9">
+                <!-- Sección Dashboard -->
+                <section id="dashboardSection" aria-labelledby="dashboardHeading">
+                    <h2 id="dashboardHeading" class="visually-hidden">Dashboard Principal</h2>
+                    
+                    <div class="feature-highlight">
+                        <div class="feature-title">
+                            <i class="fas fa-rocket"></i>
+                            RIPS JSON 2275 avanzado
+                        </div>
+                        <p>Corrija, valide y optimice sus archivos RIPS JSON con nuestro sistema especializado</p>
+                        <ul class="feature-list">
+                            <li>Procesamiento masivo de archivos JSON, PDF y XML</li>
+                            <li>Validación de datos con más de 15 reglas predefinidas</li>
+                            <li>Correcciones avanzadas con detección de errores</li>
+                            <li>Exportación de resultados en múltiples formatos</li>
+                            <li>Análisis de calidad de datos y estadísticas</li>
+                            <li>Procesamiento por lotes con programación</li>
+                        </ul>
+                        <div class="d-flex justify-content-center gap-3 mt-4">
+                            <button class="feature-button" id="startTransformBtn" aria-label="Iniciar proceso de validación y corrección de archivos RIPS JSON" aria-describedby="transformDescription">
+                                <i class="fas fa-play-circle me-2"></i>Iniciar validación y correciones
+                            </button>
+                            <button class="feature-button" id="startBatchBtn" style="background: linear-gradient(135deg, #28a745, #20c997);" aria-label="Iniciar procesamiento por lotes de archivos RIPS JSON" aria-describedby="batchDescription">
+                                <i class="fas fa-cogs me-2"></i>Procesamiento por lotes
+                            </button>
+                        </div>
+                        <div id="transformDescription" class="visually-hidden">
+                            Este botón inicia el proceso de validación y corrección de archivos RIPS JSON 
+                            según la resolución 2275 de 2023
+                        </div>
+                        <div id="batchDescription" class="visually-hidden">
+                            Este botón inicia el procesamiento por lotes de archivos RIPS JSON 
+                            para ejecutar transformaciones automáticas programadas
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-header">
+                        <h3 class="dashboard-header-title">Dashboard de procesamiento RIPS JSON</h3>
+                        <div class="dashboard-header-actions">
+                            <button class="btn btn-sm btn-outline-primary" id="refreshStatsBtn">
+                                <i class="fas fa-sync-alt me-1"></i>Actualizar
+                            </button>
+                            <button class="btn btn-sm btn-primary" id="newProcessBtn">
+                                <i class="fas fa-plus me-1"></i>Nuevo proceso
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="quick-stats">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-file-import"></i>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-title">Archivos cargados</div>
+                                <div class="stat-value" id="dashboardFileCount">0</div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-title">Correcciones exitosas</div>
+                                <div class="stat-value" id="dashboardTransformCount">0</div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-title">Errores detectados</div>
+                                <div class="stat-value" id="dashboardErrorCount">0</div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-title">Tiempo promedio</div>
+                                <div class="stat-value" id="dashboardAvgTime">0s</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="recent-files">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="section-title mb-0"><i class="fas fa-history me-2"></i>Archivos recientes</h5>
+                                    <div class="search-box" style="width: 60%;">
+                                        <input type="text" class="form-control form-control-sm" placeholder="Buscar archivos..." id="fileSearchInput">
+                                        <i class="fas fa-search"></i>
+                                    </div>
+                                </div>
+                                <div id="recentFilesList">
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                                        <p>No hay archivos recientes</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="transform-history">
+                                <h5 class="section-title"><i class="fas fa-list-check me-2"></i>Historial de correcciones</h5>
+                                <div id="historyList">
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                                        <p>No se han hecho correcciones</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Estadísticas de procesamiento</h5>
+                                    <div class="tabs-container">
+                                        <ul class="nav nav-tabs" id="analyticsTabs">
+                                            <li class="nav-item">
+                                                <a class="nav-link active" data-bs-toggle="tab" href="#fileTypes">Tipos de archivo</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" data-bs-toggle="tab" href="#processingStats">Procesamiento</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" data-bs-toggle="tab" href="#performance">Rendimiento</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="tab-content">
+                                        <div class="tab-pane fade show active" id="fileTypes">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="dashboard-card">
+                                                        <div class="dashboard-title">
+                                                            <i class="fas fa-file"></i> Tipos de Archivos
+                                                        </div>
+                                                        <div class="d-flex justify-content-around mb-3">
+                                                            <div class="text-center">
+                                                                <div class="file-type-indicator json-file"></div>
+                                                                <span>JSON</span>
+                                                                <div id="jsonPercent">0%</div>
+                                                            </div>
+                                                            <div class="text-center">
+                                                                <div class="file-type-indicator pdf-file"></div>
+                                                                <span>PDF</span>
+                                                                <div id="pdfPercent">0%</div>
+                                                            </div>
+                                                            <div class="text-center">
+                                                                <div class="file-type-indicator xml-file"></div>
+                                                                <span>XML</span>
+                                                                <div id="xmlPercent">0%</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="col-md-8">
+                                                    <div class="analytics-chart">
+                                                        <div class="dashboard-title">
+                                                            <i class="fas fa-chart-pie me-2"></i>Distribución de tipos de archivo
+                                                        </div>
+                                                        <div class="chart-placeholder">
+                                                            <i class="fas fa-chart-pie fa-3x me-3"></i>
+                                                            <span>Gráfico de distribución de tipos de archivo</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="tab-pane fade" id="processingStats">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="dashboard-card">
+                                                        <div class="dashboard-title">
+                                                            <i class="fas fa-tasks"></i> Procesamiento
+                                                        </div>
+                                                        <div class="d-flex justify-content-around mb-3">
+                                                            <div class="text-center">
+                                                                <i class="fas fa-check-circle text-success mb-2"></i>
+                                                                <div>Éxito</div>
+                                                                <div id="successPercent">0%</div>
+                                                            </div>
+                                                            <div class="text-center">
+                                                                <i class="fas fa-exclamation-triangle text-warning mb-2"></i>
+                                                                <div>Advertencias</div>
+                                                                <div id="warningPercent">0%</div>
+                                                            </div>
+                                                            <div class="text-center">
+                                                                <i class="fas fa-times-circle text-danger mb-2"></i>
+                                                                <div>Errores</div>
+                                                                <div id="errorPercent">0%</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="col-md-8">
+                                                    <div class="analytics-chart">
+                                                        <div class="dashboard-title">
+                                                            <i class="fas fa-chart-line me-2"></i>Evolución de procesamiento
+                                                        </div>
+                                                        <div class="chart-placeholder">
+                                                            <i class="fas fa-chart-line fa-3x me-3"></i>
+                                                            <span>Gráfico de evolución de procesamiento</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="tab-pane fade" id="performance">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="dashboard-card">
+                                                        <div class="dashboard-title">
+                                                            <i class="fas fa-bolt"></i> Rendimiento
+                                                        </div>
+                                                        <div class="dashboard-value" id="avgTime">0s</div>
+                                                        <div class="dashboard-footer">Tiempo promedio por archivo</div>
+                                                    </div>
+                                                    <div class="dashboard-card mt-4">
+                                                        <div class="dashboard-title">
+                                                            <i class="fas fa-memory"></i> Uso de memoria
+                                                        </div>
+                                                        <div class="dashboard-value" id="memoryUsage">0 MB</div>
+                                                        <div class="dashboard-footer">Memoria utilizada</div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="col-md-8">
+                                                    <div class="analytics-chart">
+                                                        <div class="dashboard-title">
+                                                            <i class="fas fa-tachometer-alt me-2"></i>Métricas de rendimiento
+                                                        </div>
+                                                        <div class="chart-placeholder">
+                                                            <i class="fas fa-tachometer-alt fa-3x me-3"></i>
+                                                            <span>Gráfico de métricas de rendimiento</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Sección Transformación JSON -->
+                <section id="jsonTransformSection" class="hidden" aria-labelledby="transformHeading">
+                    <h2 id="transformHeading" class="visually-hidden">Transformación y Validación de JSON</h2>
+                    
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-light">
+                            <h2 class="h5 mb-0"><i class="fas fa-sync-alt me-2"></i>Corregir y validar archivos JSON</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="performance-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <div>
+                                    <strong>Procesos activos:</strong> 
+                                    Se aplicarán todas las reglas de validación solicitadas con detección de errores.
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-4 mb-3">
+                                    <div class="stats-card">
+                                        <i class="fas fa-file-import"></i>
+                                        <h3>Cargar</h3>
+                                        <p>Seleccione archivos o carpetas</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="stats-card">
+                                        <i class="fas fa-cogs"></i>
+                                        <h3>Corregir y validar</h3>
+                                        <p>Aplicar reglas para corrección y validación de datos</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="stats-card">
+                                        <i class="fas fa-file-download"></i>
+                                        <h3>Descargar</h3>
+                                        <p>Obtener archivos modificados</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Área de carga de archivos -->
+                            <div class="card mb-4">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0"><i class="fas fa-file-upload me-2"></i>Cargar archivos</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <div class="upload-area" id="jsonDropZone" role="button" tabindex="0" aria-label="Arrastre y suelte archivos JSON, PDF o XML o haga clic para seleccionar">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                            <p>Arrastra y suelta tus archivos JSON, PDF o XML aquí</p>
+                                            <p class="small text-muted">o haz clic para seleccionar</p>
+                                            <input type="file" id="jsonFileInput" webkitdirectory directory multiple accept=".json,.pdf,.xml" class="d-none" aria-label="Seleccionar archivos">
+                                        </div>
+                                        <div class="form-check mt-3">
+                                            <input class="form-check-input" type="checkbox" id="processSubfolders" checked aria-label="Procesar subcarpetas recursivamente">
+                                            <label class="form-check-label" for="processSubfolders">
+                                                Procesar subcarpetas recursivamente
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="fileListContainer">
+                                        <h5 class="section-title">Archivos seleccionados</h5>
+                                        <div id="folderStructure" class="folder-structure mb-3"></div>
+                                        <div id="fileList" class="mb-3"></div>
+                                        <div id="fileEditor" class="file-editor hidden">
+                                            <div class="file-path" id="currentFilePath"></div>
+                                            <textarea id="fileContentEditor" class="form-control"></textarea>
+                                            <div class="file-editor-actions">
+                                                <button class="btn btn-secondary" id="cancelEditBtn">Cancelar</button>
+                                                <button class="btn btn-primary" id="saveFileBtn">Guardar Cambios</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Opciones avanzadas -->
+                            <div class="advanced-options">
+                                <h5 class="section-title"><i class="fas fa-cogs me-2"></i>Opciones avanzadas</h5>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="enableBackup" checked>
+                                            <label class="form-check-label" for="enableBackup">
+                                                Crear copia de seguridad
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="enableCompression" checked>
+                                            <label class="form-check-label" for="enableCompression">
+                                                Comprimir archivos de salida
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="enableLogging" checked>
+                                            <label class="form-check-label" for="enableLogging">
+                                                Generar registro de actividad
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Reglas de transformación -->
+                            <div class="transform-options">
+                                <h5 class="section-title">Reglas de corrección y validación</h5>
+                                
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-file-invoice me-2"></i>Limpieza de numAutorizacion</h5>
+                                    <div class="transform-description">
+                                        Eliminar comillas dobles innecesarias y espacios en el campo numAutorizacion
+                                    </div>
+                                    <div class="transform-example">
+                                        <div>"numAutorizacion": <span class="text-danger">"\"xxxxxxxxxx\""</span> → <span class="text-success">"xxxxxxxxxx"</span></div>
+                                        <div>"numAutorizacion": <span class="text-danger">" xxxxxxxxxxx "</span> → <span class="text-success">"xxxxxxxxxxx"</span></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-file-medical me-2"></i>Actualización causaMotivoAtencion</h5>
+                                    <div class="transform-description">
+                                        Cambiar valor de causaMotivoAtencion de "13" o "21" a "38"
+                                    </div>
+                                    <div class="transform-example">
+                                        <div>"causaMotivoAtencion": <span class="text-danger">"13"</span> → <span class="text-success">"38"</span></div>
+                                        <div>"causaMotivoAtencion": <span class="text-danger">"21"</span> → <span class="text-success">"38"</span></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-pills me-2"></i>Normalización nomTecnologiaSalud</h5>
+                                    <div class="transform-description">
+                                        Estandarización de nombres en el campo nomTecnologiaSalud
+                                    </div>
+                                    
+                                    <table class="replacement-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Original</th>
+                                                <th>Transformado</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>DEXAMETASONA FOSFATO 4 MGML</td>
+                                                <td>DEXAMETASONA FOSFATO 4MGML</td>
+                                            </tr>
+                                            <tr>
+                                                <td>METOCLOPRAMIDA10 MG2 ML SLN IN</td>
+                                                <td>METOCLOPRAMIDA 10 MG 2ML</td>
+                                            </tr>
+                                            <tr>
+                                                <td>SODIO CLORURO 0.9 solucin inye</td>
+                                                <td>SODIO CLORURO 0.9 SOLUCION</td>
+                                            </tr>
+                                            <tr>
+                                                <td>DICLOFENACO SDICO 75 MG3 ML SO</td>
+                                                <td>DICLOFENACO SDICO 75MG 3ML</td>
+                                            </tr>
+                                            <tr>
+                                                <td>MEROPENEM 1 G POLVO PARA INYEC</td>
+                                                <td>MEROPENEM 1 G POLVO</td>
+                                            </tr>
+                                            <tr>
+                                                <td>HIOSCINA NBUTIL BROMURO20 MGML</td>
+                                                <td>HIOSCINA NBUTILBROMURO 20MGML</td>
+                                            </tr>
+                                            <tr>
+                                                <td>DEXAMETASONA (ACETATO) 8 MGML</td>
+                                                <td>DEXAMETASONA ACETATO 8 MGML</td>
+                                            </tr>
+                                            <tr>
+                                                <td>CLARITROMICINA 500 MG ( IV) PO</td>
+                                                <td>CLARITROMICINA 500 MG</td>
+                                            </tr>
+                                            <tr>
+                                                <td>ACETAMINOFEN 150 MG5 ML (3) JA</td>
+                                                <td>ACETAMINOFEN 150 MG 5ML JA</td>
+                                            </tr>
+                                            <tr>
+                                                <td>FITOMENADIONA (VITAMINA K1) 10</td>
+                                                <td>FITOMENADIONA VITAMINA K1</td>
+                                            </tr>
+                                            <tr>
+                                                <td>GENTAMICINA (SULFATO) 0,3 UNGE</td>
+                                                <td>GENTAMICINA SULFATO 0,3 UNGE</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-exclamation-circle me-2"></i>Validación de Documentos</h5>
+                                    <div class="transform-description">
+                                        Detectar y reportar errores en datos faltantes o inválidos
+                                    </div>
+                                    <div class="transform-example">
+                                        <div>"tipoDocumentoIdentificacion": <span class="text-danger">null</span> → <span class="text-danger">ERROR</span></div>
+                                        <div>"numAutorizacion": <span class="text-danger">null</span> → <span class="text-danger">ERROR</span></div>
+                                        <div>"numAutorizacion": <span class="text-danger">""</span> → <span class="text-danger">ERROR</span></div>
+                                        <div>"codDiagnosticoPrincipal": <span class="text-danger">""</span> → <span class="text-danger">ERROR</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-id-card me-2"></i>Ajustar documentos PT</h5>
+                                    <div class="transform-description">
+                                        Cambiar codPaisOrigen de "170" a "862" cuando tipoDocumentoIdentificacion es "PT"
+                                    </div>
+                                    <div class="transform-example">
+                                        <div>"tipoDocumentoIdentificacion": <span class="text-danger">"PT"</span> y "codPaisOrigen": <span class="text-danger">"170"</span> → <span class="text-success">"codPaisOrigen": "862"</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-procedures me-2"></i>Actualización procedimientos</h5>
+                                    <div class="transform-description">
+                                        Cambiar valores en procedimientos según reglas específicas
+                                    </div>
+                                    <div class="transform-example">
+                                        <div>"finalidadTecnologiaSalud": <span class="text-danger">"44" o "16"</span> → <span class="text-success">"15"</span></div>
+                                        <div>"viaIngresoServicioSalud": <span class="text-danger">"02"</span> → <span class="text-success">"03"</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-user-check me-2"></i>Validación tipo de usuario</h5>
+                                    <div class="transform-description">
+                                        Validar que el tipo de usuario corresponda con el régimen
+                                    </div>
+                                    <div class="transform-example">
+                                        <div>Régimen subsidiado: <span class="text-danger">"tipoUsuario": "01"</span> → <span class="text-danger">ERROR (debe ser "04")</span></div>
+                                        <div>Régimen contributivo: <span class="text-danger">"tipoUsuario": "04"</span> → <span class="text-danger">ERROR (debe ser "01" o "02")</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-hospital me-2"></i>Validación hospitalización y urgencias</h5>
+                                    <div class="transform-description">
+                                        <p>Tomar <code>fechaInicioAtencion</code> de hospitalización y asignarla a <code>fechaEgreso</code> en urgencias</p>
+                                    </div>
+                                    <div class="transform-example">
+                                        <div>"fechaEgreso" (en urgencias): <span class="text-danger">"2025-04-19 12:13"</span> → <span class="text-success">"2025-04-17 16:20"</span> (valor de hospitalización)</div>
+                                    </div>
+                                </div>
+
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-stethoscope me-2"></i>Validación codDiagnosticoPrincipal</h5>
+                                    <div class="transform-description">
+                                        Reportar error cuando codDiagnosticoPrincipal esté vacío
+                                    </div>
+                                    <div class="transform-example">
+                                        <div>"codDiagnosticoPrincipal": <span class="text-danger">""</span> → <span class="text-danger">ERROR</span></div>
+                                        <div>"codDiagnosticoPrincipal": <span class="text-danger">null</span> → <span class="text-danger">ERROR</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="text-center mt-4">
+                                    <button id="transformJsonBtn" class="btn btn-transform" aria-label="Aplicar transformaciones a los archivos seleccionados">
+                                        <i class="fas fa-sync-alt me-2"></i>Procesar datos
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Sección de procesamiento -->
+                            <div id="processingSection" style="display: none;">
+                                <div class="card mb-4">
+                                    <div class="card-header bg-info text-white">
+                                        <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Transformando Archivos</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="progress-container">
+                                            <div class="progress-bar">
+                                                <div class="progress-fill" id="progressFill" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                            <div class="text-end mt-1">
+                                                <span id="progressText">0%</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-3">
+                                            <div class="current-file">
+                                                <i class="fas fa-file-alt me-2"></i>
+                                                <span id="currentFileName">Cargando...</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="validation-results mt-4" id="validationResults">
+                                            <!-- Aquí se mostrarán los resultados de validación -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Resultados de transformación -->
+                            <div id="transformResults" style="display: none;">
+                                <div class="transform-summary">
+                                    <h5 class="section-title"><i class="fas fa-clipboard-list me-2"></i>Detalle de conversión RIPS</h5>
+                                    <div id="transformationsList"></div>
+                                </div>
+                                
+                                <div class="card mb-4">
+                                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><i class="fas fa-file-code me-2"></i>Vista Previa JSON Transformado</h5>
+                                        <div>
+                                            <button id="downloadAllBtn" class="btn btn-light btn-sm me-2" aria-label="Descargar todos los archivos transformados">
+                                                <i class="fas fa-download me-1"></i>Descargar Todos
+                                            </button>
+                                            <button id="downloadSelectedBtn" class="btn btn-outline-light btn-sm" aria-label="Descargar archivo seleccionado">
+                                                <i class="fas fa-file-download me-1"></i>Descargar Selección
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <select id="fileSelector" class="form-select" aria-label="Seleccionar archivo para previsualizar">
+                                                <option value="">Seleccione un archivo para previsualizar</option>
+                                            </select>
+                                        </div>
+                                        <pre id="jsonPreview" class="json-viewer"></pre>
+                                    </div>
+                                </div>
+                                
+                                <div id="errorDetailsSection" class="mt-4">
+                                    <!-- Sección de detalles de errores -->
+                                </div>
+                                
+                                <div class="mt-3 text-end">
+                                    <button id="resetProcessBtn" class="btn btn-outline-secondary" aria-label="Reiniciar proceso de transformación">
+                                        <i class="fas fa-redo me-2"></i>Nuevo Proceso
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Sección Procesamiento por Lotes -->
+                <section id="batchProcessingSection" class="hidden" aria-labelledby="batchHeading">
+                    <h2 id="batchHeading" class="visually-hidden">Procesamiento por Lotes</h2>
+                    
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-light">
+                            <h2 class="h5 mb-0"><i class="fas fa-cogs me-2"></i>Procesamiento por lotes</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="performance-warning">
+                                <i class="fas fa-info-circle"></i>
+                                <div>
+                                    <strong>Procesamiento programado:</strong> 
+                                    Configure tareas de procesamiento recurrentes para ejecutarse automáticamente.
+                                </div>
+                            </div>
+                            
+                            <div class="batch-processing">
+                                <div class="batch-card">
+                                    <div class="batch-icon">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <div class="batch-title">Programar tarea</div>
+                                    <div class="batch-description">Configure una tarea recurrente para procesamiento automático</div>
+                                    <button class="btn btn-primary btn-sm" id="scheduleTaskBtn">Configurar</button>
+                                </div>
+                                
+                                <div class="batch-card">
+                                    <div class="batch-icon">
+                                        <i class="fas fa-folder-open"></i>
+                                    </div>
+                                    <div class="batch-title">Monitorear carpeta</div>
+                                    <div class="batch-description">Procese automáticamente archivos en una carpeta específica</div>
+                                    <button class="btn btn-primary btn-sm" id="monitorFolderBtn">Seleccionar</button>
+                                </div>
+                                
+                                <div class="batch-card">
+                                    <div class="batch-icon">
+                                        <i class="fas fa-server"></i>
+                                    </div>
+                                    <div class="batch-title">Procesamiento en servidor</div>
+                                    <div class="batch-description">Ejecute tareas pesadas en un servidor remoto</div>
+                                    <button class="btn btn-primary btn-sm" id="serverProcessingBtn">Conectar</button>
+                                </div>
+                                
+                                <div class="batch-card">
+                                    <div class="batch-icon">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <div class="batch-title">Análisis de rendimiento</div>
+                                    <div class="batch-description">Optimice el rendimiento de sus procesos por lotes</div>
+                                    <button class="btn btn-primary btn-sm" id="performanceAnalysisBtn">Analizar</button>
+                                </div>
+                            </div>
+                            
+                            <!-- Formulario de programación de tareas (oculto inicialmente) -->
+                            <div id="scheduleForm" class="schedule-form hidden mt-4">
+                                <h5 class="section-title"><i class="fas fa-clock me-2"></i>Programar tarea de procesamiento</h5>
+                                
+                                <div class="form-section">
+                                    <h6 class="form-section-title">Configuración básica</h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="taskName" class="form-label">Nombre de la tarea</label>
+                                                <input type="text" class="form-control" id="taskName" placeholder="Ej: Procesamiento diario RIPS">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="taskDescription" class="form-label">Descripción</label>
+                                                <textarea class="form-control" id="taskDescription" rows="2" placeholder="Descripción de la tarea programada"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-section">
+                                    <h6 class="form-section-title">Programación</h6>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="scheduleType" class="form-label">Frecuencia</label>
+                                                <select class="form-select" id="scheduleType">
+                                                    <option value="daily">Diario</option>
+                                                    <option value="weekly">Semanal</option>
+                                                    <option value="monthly">Mensual</option>
+                                                    <option value="custom">Personalizado</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="scheduleTime" class="form-label">Hora de ejecución</label>
+                                                <input type="time" class="form-control" id="scheduleTime" value="02:00">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="scheduleDays" class="form-label">Días de la semana</label>
+                                                <select class="form-select" id="scheduleDays" multiple>
+                                                    <option value="0" selected>Domingo</option>
+                                                    <option value="1" selected>Lunes</option>
+                                                    <option value="2" selected>Martes</option>
+                                                    <option value="3" selected>Miércoles</option>
+                                                    <option value="4" selected>Jueves</option>
+                                                    <option value="5" selected>Viernes</option>
+                                                    <option value="6" selected>Sábado</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-section">
+                                    <h6 class="form-section-title">Configuración de procesamiento</h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="inputFolder" class="form-label">Carpeta de entrada</label>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" id="inputFolder" placeholder="Ruta de la carpeta de entrada">
+                                                    <button class="btn btn-outline-secondary" type="button" id="browseInputBtn">Examinar</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="outputFolder" class="form-label">Carpeta de salida</label>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" id="outputFolder" placeholder="Ruta de la carpeta de salida">
+                                                    <button class="btn btn-outline-secondary" type="button" id="browseOutputBtn">Examinar</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="deleteAfterProcess" checked>
+                                        <label class="form-check-label" for="deleteAfterProcess">
+                                            Eliminar archivos originales después del procesamiento
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="button" class="btn btn-secondary" id="cancelScheduleBtn">Cancelar</button>
+                                    <button type="button" class="btn btn-primary" id="saveScheduleBtn">Guardar programación</button>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <h5 class="section-title"><i class="fas fa-list-check me-2"></i>Tareas programadas</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Nombre</th>
+                                                <th>Frecuencia</th>
+                                                <th>Última ejecución</th>
+                                                <th>Próxima ejecución</th>
+                                                <th>Estado</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="scheduledTasksTable">
+                                            <tr>
+                                                <td>Procesamiento diario RIPS</td>
+                                                <td>Diario</td>
+                                                <td>2025-04-20 02:00</td>
+                                                <td>2025-04-21 02:00</td>
+                                                <td><span class="status-indicator status-active"></span> Activo</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-play"></i></button>
+                                                    <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></button>
+                                                    <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Validación semanal</td>
+                                                <td>Semanal</td>
+                                                <td>2025-04-15 03:00</td>
+                                                <td>2025-04-22 03:00</td>
+                                                <td><span class="status-indicator status-inactive"></span> Inactivo</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-play"></i></button>
+                                                    <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></button>
+                                                    <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Pie de Página -->
+    <footer class="mt-5">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5 class="text-uppercase">Cumplimiento normativo-RIPS JSON 2275</h5>
+                    <p>Herramienta para corregir y validar datos RIPS en formato JSON según la resolución 2275/2023.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="text-uppercase">Contacto</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> soporte@ripsjson.com</li>
+                        <li><i class="fas fa-phone me-2"></i> +57 3153478426</li>
+                        <li><i class="fas fa-map-marker-alt me-2"></i> Riohacha, Colombia</li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="text-uppercase">Legal</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-reset">Términos y condiciones</a></li>
+                        <li><a href="#" class="text-reset">Política de privacidad</a></li>
+                        <li><a href="#" class="text-reset">Soporte técnico</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="text-center">
+                <p class="mb-0">&copy; 2025 Herramienta de corrección y validación de RIPS JSON 2275. Todos los derechos reservados por D&D.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    
+    <script>
+        // =============================================
+        // MÓDULO PRINCIPAL DE LA APLICACIÓN
+        // =============================================
+        const App = {
+            // Estado global de la aplicación
+            state: {
+                currentSection: 'dashboard',
+                files: [],
+                transformations: [],
+                batchJobs: [],
+                user: {
+                    name: 'Administrador',
+                    preferences: {}
+                },
+                subscribers: {}
+            },
+            
+            // Inicialización de la aplicación
+            init() {
+                this.setupNavigation();
+                this.setupFileProcessing();
+                this.setupBatchProcessing();
+                this.initializeDashboard();
+                this.setupEventListeners();
+                this.updateCurrentDate();
+                
+                // Inicializar con la sección dashboard visible
+                this.showSection('dashboard');
+                
+                Logger.info('Aplicación inicializada correctamente');
+            },
+            
+            // Configuración de navegación entre secciones
+            setupNavigation() {
+                const dashboardLink = document.getElementById('dashboardLink');
+                const transformLink = document.getElementById('transformLink');
+                const batchProcessingLink = document.getElementById('batchProcessingLink');
+                const startTransformBtn = document.getElementById('startTransformBtn');
+                const startBatchBtn = document.getElementById('startBatchBtn');
+                
+                // Event listeners para navegación
+                dashboardLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.showSection('dashboard');
+                });
+                
+                transformLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.showSection('transform');
+                });
+                
+                batchProcessingLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.showSection('batch');
+                });
+                
+                startTransformBtn.addEventListener('click', () => {
+                    this.showSection('transform');
+                });
+                
+                startBatchBtn.addEventListener('click', () => {
+                    this.showSection('batch');
+                });
+            },
+            
+            // Mostrar/ocultar secciones
+            showSection(section) {
+                const dashboardSection = document.getElementById('dashboardSection');
+                const jsonTransformSection = document.getElementById('jsonTransformSection');
+                const batchProcessingSection = document.getElementById('batchProcessingSection');
+                
+                const dashboardLink = document.getElementById('dashboardLink');
+                const transformLink = document.getElementById('transformLink');
+                const batchProcessingLink = document.getElementById('batchProcessingLink');
+                
+                // Ocultar todas las secciones
+                dashboardSection.classList.add('hidden');
+                jsonTransformSection.classList.add('hidden');
+                batchProcessingSection.classList.add('hidden');
+                
+                // Remover clase active de todos los enlaces
+                dashboardLink.classList.remove('active');
+                transformLink.classList.remove('active');
+                batchProcessingLink.classList.remove('active');
+                
+                // Mostrar sección seleccionada y activar enlace
+                switch(section) {
+                    case 'dashboard':
+                        dashboardSection.classList.remove('hidden');
+                        dashboardLink.classList.add('active');
+                        this.state.currentSection = 'dashboard';
+                        break;
+                    case 'transform':
+                        jsonTransformSection.classList.remove('hidden');
+                        transformLink.classList.add('active');
+                        this.state.currentSection = 'transform';
+                        break;
+                    case 'batch':
+                        batchProcessingSection.classList.remove('hidden');
+                        batchProcessingLink.classList.add('active');
+                        this.state.currentSection = 'batch';
+                        break;
+                }
+                
+                Logger.info(`Sección cambiada a: ${section}`);
+            },
+            
+            // Configuración del procesamiento de archivos
+            setupFileProcessing() {
+                const jsonDropZone = document.getElementById('jsonDropZone');
+                const jsonFileInput = document.getElementById('jsonFileInput');
+                const transformJsonBtn = document.getElementById('transformJsonBtn');
+                
+                // Configurar área de arrastrar y soltar
+                jsonDropZone.addEventListener('click', () => {
+                    jsonFileInput.click();
+                });
+                
+                jsonDropZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    jsonDropZone.style.borderColor = 'var(--primary-color)';
+                    jsonDropZone.style.backgroundColor = 'rgba(43, 77, 140, 0.1)';
+                });
+                
+                jsonDropZone.addEventListener('dragleave', () => {
+                    jsonDropZone.style.borderColor = '#dee2e6';
+                    jsonDropZone.style.backgroundColor = '#f8f9fa';
+                });
+                
+                jsonDropZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    jsonDropZone.style.borderColor = '#dee2e6';
+                    jsonDropZone.style.backgroundColor = '#f8f9fa';
+                    
+                    if (e.dataTransfer.files.length > 0) {
+                        this.handleFiles(e.dataTransfer.files);
+                    }
+                });
+                
+                // Configurar input de archivos
+                jsonFileInput.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        this.handleFiles(e.target.files);
+                    }
+                });
+                
+                // Configurar botón de transformación
+                transformJsonBtn.addEventListener('click', () => {
+                    this.processFiles();
+                });
+            },
+            
+            // Configuración del procesamiento por lotes
+            setupBatchProcessing() {
+                const scheduleTaskBtn = document.getElementById('scheduleTaskBtn');
+                const monitorFolderBtn = document.getElementById('monitorFolderBtn');
+                const serverProcessingBtn = document.getElementById('serverProcessingBtn');
+                const performanceAnalysisBtn = document.getElementById('performanceAnalysisBtn');
+                const scheduleForm = document.getElementById('scheduleForm');
+                const cancelScheduleBtn = document.getElementById('cancelScheduleBtn');
+                const saveScheduleBtn = document.getElementById('saveScheduleBtn');
+                const browseInputBtn = document.getElementById('browseInputBtn');
+                const browseOutputBtn = document.getElementById('browseOutputBtn');
+                
+                // Funcionalidades del módulo de procesamiento por lotes
+                scheduleTaskBtn.addEventListener('click', () => {
+                    scheduleForm.classList.remove('hidden');
+                    scheduleTaskBtn.disabled = true;
+                });
+                
+                cancelScheduleBtn.addEventListener('click', () => {
+                    scheduleForm.classList.add('hidden');
+                    scheduleTaskBtn.disabled = false;
+                });
+                
+                saveScheduleBtn.addEventListener('click', () => {
+                    const taskName = document.getElementById('taskName').value;
+                    const scheduleType = document.getElementById('scheduleType').value;
+                    const scheduleTime = document.getElementById('scheduleTime').value;
+                    const inputFolder = document.getElementById('inputFolder').value;
+                    const outputFolder = document.getElementById('outputFolder').value;
+                    
+                    if (!taskName || !inputFolder || !outputFolder) {
+                        this.showNotification('Por favor complete todos los campos obligatorios', 'warning');
+                        return;
+                    }
+                    
+                    // Aquí iría la lógica para guardar la programación
+                    this.showNotification(`Tarea "${taskName}" programada correctamente para ejecutarse ${scheduleType} a las ${scheduleTime}`, 'success');
+                    
+                    // Ocultar formulario y restablecer
+                    scheduleForm.classList.add('hidden');
+                    scheduleTaskBtn.disabled = false;
+                    
+                    // Limpiar formulario
+                    document.getElementById('taskName').value = '';
+                    document.getElementById('taskDescription').value = '';
+                    document.getElementById('inputFolder').value = '';
+                    document.getElementById('outputFolder').value = '';
+                });
+                
+                browseInputBtn.addEventListener('click', () => {
+                    // En una aplicación real, aquí se abriría un diálogo para seleccionar carpeta
+                    document.getElementById('inputFolder').value = 'C:/RIPS/Entrada';
+                });
+                
+                browseOutputBtn.addEventListener('click', () => {
+                    // En una aplicación real, aquí se abriría un diálogo para seleccionar carpeta
+                    document.getElementById('outputFolder').value = 'C:/RIPS/Salida';
+                });
+                
+                monitorFolderBtn.addEventListener('click', () => {
+                    this.showNotification('Funcionalidad de monitoreo de carpeta activada. El sistema procesará automáticamente los archivos nuevos en la carpeta seleccionada.', 'info');
+                });
+                
+                serverProcessingBtn.addEventListener('click', () => {
+                    this.showNotification('Conexión con servidor remoto establecida. Las tareas pesadas se ejecutarán en el servidor.', 'info');
+                });
+                
+                performanceAnalysisBtn.addEventListener('click', () => {
+                    this.showNotification('Análisis de rendimiento iniciado. Se generará un reporte con recomendaciones de optimización.', 'info');
+                });
+                
+                // Funcionalidad para las acciones de las tareas programadas
+                document.querySelectorAll('#scheduledTasksTable button').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const action = this.querySelector('i').className;
+                        const taskName = this.closest('tr').querySelector('td:first-child').textContent;
+                        
+                        if (action.includes('fa-play')) {
+                            App.showNotification(`Iniciando tarea: ${taskName}`, 'info');
+                        } else if (action.includes('fa-edit')) {
+                            App.showNotification(`Editando tarea: ${taskName}`, 'info');
+                            // Aquí se mostraría el formulario de edición
+                        } else if (action.includes('fa-trash')) {
+                            if (confirm(`¿Está seguro de que desea eliminar la tarea "${taskName}"?`)) {
+                                App.showNotification(`Tarea "${taskName}" eliminada correctamente`, 'success');
+                                // Aquí se eliminaría la tarea de la lista
+                            }
+                        }
+                    });
+                });
+            },
+            
+            // Inicialización del dashboard
+            initializeDashboard() {
+                const refreshStatsBtn = document.getElementById('refreshStatsBtn');
+                const newProcessBtn = document.getElementById('newProcessBtn');
+                const fileSearchInput = document.getElementById('fileSearchInput');
+                
+                // Configurar botones del dashboard
+                refreshStatsBtn.addEventListener('click', () => {
+                    this.refreshDashboardStats();
+                });
+                
+                newProcessBtn.addEventListener('click', () => {
+                    this.showSection('transform');
+                });
+                
+                // Configurar búsqueda con debounce
+                fileSearchInput.addEventListener('input', 
+                    this.debounce((e) => {
+                        this.filterFiles(e.target.value);
+                    }, 300)
+                );
+                
+                // Inicializar estadísticas
+                this.refreshDashboardStats();
+            },
+            
+            // Configuración de event listeners generales
+            setupEventListeners() {
+                // Aquí se pueden agregar event listeners globales
+            },
+            
+            // Actualizar fecha actual
+            updateCurrentDate() {
+                document.getElementById('currentDate').textContent = new Date().toLocaleDateString('es-CO', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            },
+            
+            // Manejo de archivos cargados
+            handleFiles(files) {
+                Logger.info(`Archivos recibidos: ${files.length}`);
+                
+                // Limpiar lista anterior
+                this.state.files = [];
+                
+                // Procesar archivos
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    this.state.files.push({
+                        name: file.name,
+                        size: file.size,
+                        type: file.type,
+                        lastModified: file.lastModified,
+                        file: file
+                    });
+                }
+                
+                // Actualizar interfaz
+                this.updateFileList();
+                this.showNotification(`${files.length} archivos cargados correctamente`, 'success');
+            },
+            
+            // Actualizar lista de archivos en la interfaz
+            updateFileList() {
+                const fileList = document.getElementById('fileList');
+                fileList.innerHTML = '';
+                
+                this.state.files.forEach((file, index) => {
+                    const fileCard = document.createElement('div');
+                    fileCard.className = 'file-card';
+                    fileCard.innerHTML = `
+                        <div class="file-info">
+                            <strong>${file.name}</strong>
+                            <small class="text-muted">${this.formatFileSize(file.size)}</small>
+                        </div>
+                        <div class="file-actions">
+                            <button class="btn btn-sm btn-outline-primary" data-index="${index}">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" data-index="${index}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    fileList.appendChild(fileCard);
+                });
+                
+                // Actualizar contadores
+                document.getElementById('fileCount').textContent = this.state.files.length;
+                document.getElementById('dashboardFileCount').textContent = this.state.files.length;
+            },
+            
+            // Procesar archivos con las reglas de transformación
+            processFiles() {
+                if (this.state.files.length === 0) {
+                    this.showNotification('No hay archivos para procesar', 'warning');
+                    return;
+                }
+                
+                Logger.info('Iniciando procesamiento de archivos');
+                
+                // Mostrar sección de procesamiento
+                document.getElementById('processingSection').style.display = 'block';
+                document.getElementById('transformResults').style.display = 'none';
+                
+                // Simular procesamiento
+                let processed = 0;
+                const totalFiles = this.state.files.length;
+                const progressFill = document.getElementById('progressFill');
+                const progressText = document.getElementById('progressText');
+                const currentFileName = document.getElementById('currentFileName');
+                const validationResults = document.getElementById('validationResults');
+                
+                validationResults.innerHTML = '';
+                
+                const processNextFile = () => {
+                    if (processed >= totalFiles) {
+                        // Procesamiento completado
+                        document.getElementById('processingSection').style.display = 'none';
+                        document.getElementById('transformResults').style.display = 'block';
+                        this.showNotification('Procesamiento completado', 'success');
+                        this.updateTransformResults();
+                        return;
+                    }
+                    
+                    const file = this.state.files[processed];
+                    currentFileName.textContent = file.name;
+                    
+                    // Simular procesamiento con timeout
+                    setTimeout(() => {
+                        // Aplicar transformaciones
+                        const result = FileProcessor.processFile(file);
+                        
+                        // Mostrar resultado de validación
+                        const validationItem = document.createElement('div');
+                        validationItem.className = `validation-item ${result.valid ? 'valid-item' : 'invalid-item'}`;
+                        validationItem.innerHTML = `
+                            <i class="fas fa-${result.valid ? 'check-circle' : 'exclamation-triangle'}"></i>
+                            <div>
+                                <strong>${file.name}</strong>
+                                <div>${result.message}</div>
+                                ${result.errors ? `<small class="text-muted">${result.errors.join(', ')}</small>` : ''}
+                            </div>
+                        `;
+                        validationResults.appendChild(validationItem);
+                        
+                        // Actualizar progreso
+                        processed++;
+                        const progress = (processed / totalFiles) * 100;
+                        progressFill.style.width = `${progress}%`;
+                        progressText.textContent = `${Math.round(progress)}%`;
+                        
+                        // Procesar siguiente archivo
+                        processNextFile();
+                    }, 1000);
+                };
+                
+                // Iniciar procesamiento
+                processNextFile();
+            },
+            
+            // Actualizar resultados de transformación
+            updateTransformResults() {
+                const transformationsList = document.getElementById('transformationsList');
+                const fileSelector = document.getElementById('fileSelector');
+                
+                transformationsList.innerHTML = '';
+                fileSelector.innerHTML = '<option value="">Seleccione un archivo para previsualizar</option>';
+                
+                // Simular resultados de transformación
+                this.state.files.forEach((file, index) => {
+                    // Agregar a selector de archivos
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = file.name;
+                    fileSelector.appendChild(option);
+                    
+                    // Agregar item de transformación
+                    const transformItem = document.createElement('div');
+                    transformItem.className = 'transform-item';
+                    transformItem.innerHTML = `
+                        <h6>${file.name}</h6>
+                        <div class="d-flex justify-content-between">
+                            <span>Estado: <span class="text-success">Completado</span></span>
+                            <span>Transformaciones aplicadas: 5</span>
+                            <span>Errores: 0</span>
+                        </div>
+                    `;
+                    transformationsList.appendChild(transformItem);
+                });
+                
+                // Configurar evento para selección de archivo
+                fileSelector.addEventListener('change', (e) => {
+                    const index = parseInt(e.target.value);
+                    if (!isNaN(index) && this.state.files[index]) {
+                        this.showFilePreview(index);
+                    }
+                });
+                
+                // Actualizar contadores
+                document.getElementById('transformCount').textContent = this.state.files.length;
+                document.getElementById('dashboardTransformCount').textContent = this.state.files.length;
+            },
+            
+            // Mostrar vista previa de archivo
+            showFilePreview(index) {
+                const jsonPreview = document.getElementById('jsonPreview');
+                const file = this.state.files[index];
+                
+                // Simular contenido JSON transformado
+                const sampleJson = {
+                    "numAutorizacion": "123456789",
+                    "causaMotivoAtencion": "38",
+                    "nomTecnologiaSalud": "DEXAMETASONA FOSFATO 4MGML",
+                    "tipoDocumentoIdentificacion": "CC",
+                    "codPaisOrigen": "170",
+                    "finalidadTecnologiaSalud": "15",
+                    "viaIngresoServicioSalud": "03",
+                    "tipoUsuario": "01",
+                    "fechaEgreso": "2025-04-17 16:20",
+                    "codDiagnosticoPrincipal": "J06.9"
+                };
+                
+                jsonPreview.textContent = JSON.stringify(sampleJson, null, 2);
+            },
+            
+            // Actualizar estadísticas del dashboard
+            refreshDashboardStats() {
+                // Simular actualización de estadísticas
+                const stats = {
+                    files: this.state.files.length,
+                    transformations: this.state.transformations.length,
+                    errors: Math.floor(Math.random() * 5),
+                    avgTime: (Math.random() * 5 + 1).toFixed(1) + 's',
+                    memory: (Math.random() * 100 + 50).toFixed(0) + ' MB'
+                };
+                
+                document.getElementById('dashboardFileCount').textContent = stats.files;
+                document.getElementById('dashboardTransformCount').textContent = stats.transformations;
+                document.getElementById('dashboardErrorCount').textContent = stats.errors;
+                document.getElementById('dashboardAvgTime').textContent = stats.avgTime;
+                document.getElementById('errorCount').textContent = stats.errors;
+                document.getElementById('avgTime').textContent = stats.avgTime;
+                document.getElementById('memoryUsage').textContent = stats.memory;
+                
+                // Actualizar porcentajes
+                document.getElementById('jsonPercent').textContent = '65%';
+                document.getElementById('pdfPercent').textContent = '25%';
+                document.getElementById('xmlPercent').textContent = '10%';
+                document.getElementById('successPercent').textContent = '85%';
+                document.getElementById('warningPercent').textContent = '10%';
+                document.getElementById('errorPercent').textContent = '5%';
+                
+                this.showNotification('Estadísticas actualizadas', 'info');
+            },
+            
+            // Filtrar archivos en la búsqueda
+            filterFiles(query) {
+                Logger.info(`Buscando archivos: ${query}`);
+                // Implementar lógica de filtrado
+            },
+            
+            // Formatear tamaño de archivo
+            formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            },
+            
+            // Mostrar notificación
+            showNotification(message, type = 'info') {
+                // En una aplicación real, aquí se usaría un sistema de notificaciones
+                console.log(`[${type.toUpperCase()}] ${message}`);
+                
+                // Para este ejemplo, usamos alertas nativas
+                const alertClass = {
+                    'success': 'alert-success',
+                    'warning': 'alert-warning',
+                    'error': 'alert-danger',
+                    'info': 'alert-info'
+                }[type] || 'alert-info';
+                
+                // Crear notificación visual simple
+                const notification = document.createElement('div');
+                notification.className = `alert ${alertClass} alert-dismissible fade show`;
+                notification.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                
+                // Insertar al principio del main
+                const main = document.querySelector('main');
+                main.insertBefore(notification, main.firstChild);
+                
+                // Auto-eliminar después de 5 segundos
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 5000);
+            },
+            
+            // Función debounce para optimización
+            debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
+        };
+        
+        // =============================================
+        // MÓDULO DE PROCESAMIENTO DE ARCHIVOS
+        // =============================================
+        const FileProcessor = (() => {
+            // Definición de reglas de transformación
+            const TransformationRules = {
+                numAutorizacion: {
+                    name: 'Limpieza de numAutorizacion',
+                    description: 'Eliminar comillas dobles innecesarias y espacios',
+                    apply: (value) => {
+                        if (typeof value === 'string') {
+                            return value.replace(/^\"|\"$/g, '').trim();
+                        }
+                        return value;
+                    }
+                },
+                
+                causaMotivoAtencion: {
+                    name: 'Actualización causaMotivoAtencion',
+                    description: 'Cambiar valor de 13 o 21 a 38',
+                    apply: (value) => {
+                        return value === '13' || value === '21' ? '38' : value;
+                    }
+                },
+                
+                nomTecnologiaSalud: {
+                    name: 'Normalización nomTecnologiaSalud',
+                    description: 'Estandarización de nombres de medicamentos',
+                    apply: (value) => {
+                        if (typeof value !== 'string') return value;
+                        
+                        const replacements = {
+                            'DEXAMETASONA FOSFATO 4 MGML': 'DEXAMETASONA FOSFATO 4MGML',
+                            'METOCLOPRAMIDA10 MG2 ML SLN IN': 'METOCLOPRAMIDA 10 MG 2ML',
+                            'SODIO CLORURO 0.9 solucin inye': 'SODIO CLORURO 0.9 SOLUCION',
+                            'DICLOFENACO SDICO 75 MG3 ML SO': 'DICLOFENACO SDICO 75MG 3ML',
+                            'MEROPENEM 1 G POLVO PARA INYEC': 'MEROPENEM 1 G POLVO',
+                            'HIOSCINA NBUTIL BROMURO20 MGML': 'HIOSCINA NBUTILBROMURO 20MGML',
+                            'DEXAMETASONA (ACETATO) 8 MGML': 'DEXAMETASONA ACETATO 8 MGML',
+                            'CLARITROMICINA 500 MG ( IV) PO': 'CLARITROMICINA 500 MG',
+                            'ACETAMINOFEN 150 MG5 ML (3) JA': 'ACETAMINOFEN 150 MG 5ML JA',
+                            'FITOMENADIONA (VITAMINA K1) 10': 'FITOMENADIONA VITAMINA K1',
+                            'GENTAMICINA (SULFATO) 0,3 UNGE': 'GENTAMICINA SULFATO 0,3 UNGE'
+                        };
+                        
+                        return replacements[value] || value;
+                    }
+                },
+                
+                // Más reglas de transformación...
+            };
+            
+            // Procesar un archivo
+            const processFile = (file) => {
+                return safeOperation(
+                    () => {
+                        Logger.info(`Procesando archivo: ${file.name}`);
+                        
+                        // Simular procesamiento
+                        // En una aplicación real, aquí se leería y procesaría el archivo
+                        
+                        const transformations = [];
+                        let errors = [];
+                        
+                        // Aplicar algunas transformaciones de ejemplo
+                        transformations.push('Limpieza de numAutorizacion');
+                        transformations.push('Actualización causaMotivoAtencion');
+                        
+                        // Simular algunos errores aleatorios
+                        if (Math.random() > 0.7) {
+                            errors.push('Campo tipoDocumentoIdentificacion vacío');
+                        }
+                        
+                        return {
+                            valid: errors.length === 0,
+                            message: errors.length === 0 ? 
+                                'Archivo procesado correctamente' : 
+                                `Archivo procesado con ${errors.length} error(es)`,
+                            transformations: transformations,
+                            errors: errors
+                        };
+                    },
+                    'Error al procesar el archivo'
+                );
+            };
+            
+            // Validar un archivo
+            const validateFile = (file) => {
+                return safeOperation(
+                    () => {
+                        // Lógica de validación
+                        return {
+                            valid: true,
+                            warnings: [],
+                            errors: []
+                        };
+                    },
+                    'Error al validar el archivo'
+                );
+            };
+            
+            return {
+                processFile,
+                validateFile,
+                TransformationRules
+            };
+        })();
+        
+        // =============================================
+        // MÓDULO DE LOGGING
+        // =============================================
+        const Logger = {
+            levels: { ERROR: 0, WARN: 1, INFO: 2, DEBUG: 3 },
+            level: 2, // INFO por defecto
+            
+            log(level, message, data = null) {
+                if (level <= this.level) {
+                    const timestamp = new Date().toISOString();
+                    const levelName = Object.keys(this.levels).find(key => this.levels[key] === level);
+                    
+                    console.log(`[${timestamp}] ${levelName}: ${message}`, data || '');
+                    
+                    // Opcional: enviar a servidor para logging remoto
+                    if (level === this.levels.ERROR) {
+                        this.sendToServer({ timestamp, level: levelName, message, data });
+                    }
+                }
+            },
+            
+            error(message, data) { this.log(this.levels.ERROR, message, data); },
+            warn(message, data) { this.log(this.levels.WARN, message, data); },
+            info(message, data) { this.log(this.levels.INFO, message, data); },
+            debug(message, data) { this.log(this.levels.DEBUG, message, data); },
+            
+            sendToServer(logEntry) {
+                // En una aplicación real, aquí se enviaría el log al servidor
+                // Por ahora solo lo registramos en consola
+                console.log('Enviando log al servidor:', logEntry);
+            }
+        };
+        
+        // =============================================
+        // FUNCIONES UTILITARIAS
+        // =============================================
+        
+        // Wrapper para operaciones con manejo de errores
+        const safeOperation = (operation, errorMessage) => {
+            try {
+                return operation();
+            } catch (error) {
+                Logger.error(`${errorMessage}:`, error);
+                App.showNotification(errorMessage, 'error');
+                return null;
+            }
+        };
+        
+        // =============================================
+        // INICIALIZACIÓN DE LA APLICACIÓN
+        // =============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            App.init();
+        });
+        
+        // =============================================
+        // SUITE DE PRUEBAS (para desarrollo)
+        // =============================================
+        const TestSuite = {
+            runTransformationTests() {
+                const tests = [
+                    {
+                        name: 'Limpieza numAutorizacion',
+                        input: '"\\"123456\\""',
+                        expected: '123456',
+                        rule: 'numAutorizacion'
+                    },
+                    {
+                        name: 'Transformación causaMotivoAtencion',
+                        input: '13',
+                        expected: '38',
+                        rule: 'causaMotivoAtencion'
+                    },
+                    {
+                        name: 'Transformación causaMotivoAtencion (valor no cambiado)',
+                        input: '25',
+                        expected: '25',
+                        rule: 'causaMotivoAtencion'
+                    }
+                ];
+                
+                tests.forEach(test => {
+                    const result = FileProcessor.TransformationRules[test.rule].apply(test.input);
+                    console.assert(
+                        result === test.expected,
+                        `Test ${test.name} failed: expected ${test.expected}, got ${result}`
+                    );
+                });
+                
+                Logger.info('Pruebas de transformación completadas');
+            }
+        };
+        
+        // Ejecutar pruebas en desarrollo
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            setTimeout(() => {
+                TestSuite.runTransformationTests();
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

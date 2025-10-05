@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validador RIPS - Consulta Externa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: none;
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+        }
+        
+        .btn-primary {
+            background-color: var(--secondary-color);
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .validation-item {
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .valid-item {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .invalid-item {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .file-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            background-color: white;
+        }
+        
+        .progress {
+            height: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .transform-item {
+            border-left: 4px solid var(--secondary-color);
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            background-color: white;
+        }
+        
+        .error-item {
+            border-left: 4px solid var(--accent-color);
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            background-color: white;
+        }
+        
+        #jsonDropZone {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        #jsonDropZone:hover {
+            border-color: var(--secondary-color);
+            background-color: rgba(52, 152, 219, 0.05);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .file-info {
+            flex-grow: 1;
+        }
+        
+        .file-actions {
+            margin-left: 15px;
+        }
+        
+        .folder-item {
+            font-weight: bold;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        
+        .folder-contents {
+            margin-left: 20px;
+            border-left: 2px solid #eee;
+            padding-left: 10px;
+        }
+        
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 10px;
+            margin: 2px 0;
+        }
+        
+        .folder-actions, .file-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .folder-expanded .folder-contents {
+            display: block;
+        }
+        
+        .folder-collapsed .folder-contents {
+            display: none;
+        }
+        
+        #jsonPreview {
+            max-height: 400px;
+            overflow-y: auto;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            border: 1px solid #ddd;
+        }
+        
+        .json-editor {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            font-family: monospace;
+            min-height: 400px;
+            background-color: #f8f9fa;
+        }
+        
+        .processing-pulse {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .dashboard-stat {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--dark-color);
+        }
+        
+        .history-item {
+            display: flex;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .history-icon {
+            font-size: 1.5rem;
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+        
+        .recent-file-item {
+            display: flex;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            align-items: center;
+        }
+        
+        .recent-file-icon {
+            font-size: 1.5rem;
+            margin-right: 10px;
+            color: var(--dark-color);
+        }
+
+        .upload-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .upload-option-btn {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .upload-option-btn.active {
+            background-color: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+        
+        .browser-support-warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .drop-zone-disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .folder-support-info {
+            font-size: 0.85rem;
+            margin-top: 10px;
+            padding: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+        }
+        
+        .editor-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .json-error {
+            border: 1px solid #e74c3c;
+            background-color: #f8d7da;
+        }
+        
+        .file-type-badge {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background-color: #6c757d;
+            color: white;
+            margin-left: 8px;
+        }
+        
+        .file-type-json { background-color: #6f42c1; }
+        .file-type-pdf { background-color: #e74c3c; }
+        .file-type-xml { background-color: #fd7e14; }
+        .file-type-other { background-color: #6c757d; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-file-medical-alt me-2"></i>Validador RIPS - Consulta Externa
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Fecha Actual</h5>
+                    </div>
+                    <div class="card-body">
+                        <p id="currentDate" class="mb-0"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-upload me-2"></i>Cargar Archivos RIPS</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="browser-support-warning" id="folderSupportWarning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <span id="supportMessage">Tu navegador tiene limitaciones para seleccionar carpetas. Usa Chrome o Edge para una experiencia completa.</span>
+                        </div>
+                        
+                        <div class="upload-options">
+                            <div class="upload-option-btn active" id="folderOption">
+                                <i class="fas fa-folder me-2"></i>Carpetas
+                            </div>
+                            <div class="upload-option-btn" id="fileOption">
+                                <i class="fas fa-file me-2"></i>Archivos Individuales
+                            </div>
+                        </div>
+                        
+                        <div id="jsonDropZone" tabindex="0">
+                            <i class="fas fa-cloud-upload-alt fa-3x mb-3"></i>
+                            <p>Arrastra y suelta tus carpetas con archivos RIPS aquí</p>
+                            <p class="small text-muted">o haz clic para seleccionar carpetas</p>
+                        </div>
+                        <input type="file" id="jsonFileInput" class="d-none" webkitdirectory directory multiple>
+                        
+                        <div class="folder-support-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <span id="folderSupportText">La selección de carpetas funciona mejor en Chrome y Edge. En otros navegadores, puedes arrastrar y soltar carpetas completas.</span>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h6>Archivos seleccionados:</h6>
+                            <div id="fileList" class="mt-2"></div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <button id="transformJsonBtn" class="btn btn-primary w-100">
+                                <i class="fas fa-cog me-2"></i>Validar y Transformar Archivos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-list me-2"></i>Estructura de Carpetas</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="folderStructure"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div id="processingSection" class="card hidden">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-spinner fa-spin me-2"></i>Procesando Archivos</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Progreso:</span>
+                                <span id="progressText">0%</span>
+                            </div>
+                            <div class="progress">
+                                <div id="progressFill" class="progress-bar progress-bar-striped progress-bar-animated" 
+                                     role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <strong>Archivo actual:</strong> <span id="currentFileName">-</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="transformResults" class="card hidden">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>Resultados de Validación</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="validationResults" class="mb-4"></div>
+                        
+                        <h6 class="mb-3">Resumen de transformaciones:</h6>
+                        <div id="transformationsList"></div>
+                        
+                        <div class="mt-4">
+                            <h6>Editor de archivo transformado:</h6>
+                            <select id="fileSelector" class="form-select mb-3">
+                                <option value="">Seleccione un archivo para editar</option>
+                            </select>
+                            <textarea id="jsonEditor" class="form-control json-editor" placeholder="Seleccione un archivo para editar"></textarea>
+                            <div class="editor-actions">
+                                <button id="saveChangesBtn" class="btn btn-success">
+                                    <i class="fas fa-save me-1"></i>Guardar Cambios
+                                </button>
+                                <button id="revertChangesBtn" class="btn btn-outline-secondary">
+                                    <i class="fas fa-undo me-1"></i>Revertir
+                                </button>
+                            </div>
+                            <div id="jsonError" class="alert alert-danger mt-2 hidden"></div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <button id="downloadSelectedBtn" class="btn btn-outline-primary">
+                                <i class="fas fa-file-download me-1"></i>Descargar Selección
+                            </button>
+                            <button id="downloadAllBtn" class="btn btn-primary">
+                                <i class="fas fa-download me-1"></i>Descargar Todos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Detalles de Errores</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="errorDetailsSection"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <button id="resetProcessBtn" class="btn btn-outline-secondary">
+                    <i class="fas fa-redo me-2"></i>Reiniciar Proceso
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Mostrar fecha actual en el encabezado
+            document.getElementById('currentDate').textContent = new Date().toLocaleDateString('es-CO', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            // Referencias a elementos
+            const jsonFileInput = document.getElementById('jsonFileInput');
+            const transformJsonBtn = document.getElementById('transformJsonBtn');
+            const jsonEditor = document.getElementById('jsonEditor');
+            const downloadAllBtn = document.getElementById('downloadAllBtn');
+            const downloadSelectedBtn = document.getElementById('downloadSelectedBtn');
+            const jsonDropZone = document.getElementById('jsonDropZone');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            const validationResults = document.getElementById('validationResults');
+            const processingSection = document.getElementById('processingSection');
+            const transformResults = document.getElementById('transformResults');
+            const resetProcessBtn = document.getElementById('resetProcessBtn');
+            const fileList = document.getElementById('fileList');
+            const folderStructure = document.getElementById('folderStructure');
+            const fileSelector = document.getElementById('fileSelector');
+            const currentFileName = document.getElementById('currentFileName');
+            const errorDetailsSection = document.getElementById('errorDetailsSection');
+            const transformationsList = document.getElementById('transformationsList');
+            const folderOption = document.getElementById('folderOption');
+            const fileOption = document.getElementById('fileOption');
+            const folderSupportWarning = document.getElementById('folderSupportWarning');
+            const folderSupportText = document.getElementById('folderSupportText');
+            const supportMessage = document.getElementById('supportMessage');
+            const saveChangesBtn = document.getElementById('saveChangesBtn');
+            const revertChangesBtn = document.getElementById('revertChangesBtn');
+            const jsonError = document.getElementById('jsonError');
+            
+            let allFiles = []; // Todos los archivos (JSON y no JSON)
+            let jsonFiles = []; // Solo archivos JSON para procesamiento
+            let folderTree = {};
+            let transformedFiles = [];
+            let totalTransformations = 0;
+            let totalErrors = 0;
+            let processingQueue = [];
+            let isProcessing = false;
+            let uploadMode = 'folder'; // 'folder' o 'file'
+            let browserSupport = {
+                folderInput: false,
+                directoryDrop: false
+            };
+            let currentEditorIndex = -1;
+            let originalEditorContent = '';
+
+            // Verificar soporte del navegador
+            checkBrowserSupport();
+
+            // Configurar event listeners
+            setupEventListeners();
+
+            function checkBrowserSupport() {
+                // Verificar si el navegador soporta la selección de carpetas
+                const input = document.createElement('input');
+                input.type = 'file';
+                browserSupport.folderInput = !!('webkitdirectory' in input || 'directory' in input);
+                
+                // Verificar soporte para DataTransferItem y getAsFileSystemHandle
+                browserSupport.directoryDrop = !!(
+                    window.DataTransferItem && 
+                    window.DataTransferItem.prototype.getAsFileSystemHandle
+                );
+                
+                // Mostrar advertencias según el soporte
+                if (!browserSupport.folderInput) {
+                    folderSupportWarning.style.display = 'block';
+                    supportMessage.textContent = 'Tu navegador no soporta la selección de carpetas mediante el botón. Usa Chrome o Edge para una experiencia completa.';
+                    folderSupportText.textContent = 'Tu navegador no soporta la selección de carpetas. Arrastra y suelta carpetas completas para procesarlas.';
+                } else if (!browserSupport.directoryDrop) {
+                    folderSupportWarning.style.display = 'block';
+                    supportMessage.textContent = 'Tu navegador tiene soporte limitado. Para una mejor experiencia con carpetas, usa Chrome o Edge.';
+                    folderSupportText.textContent = 'Puedes seleccionar carpetas con el botón, pero el arrastre de carpetas podría no funcionar correctamente.';
+                }
+            }
+
+            function setupEventListeners() {
+                // Cambiar modo de carga
+                folderOption.addEventListener('click', () => setUploadMode('folder'));
+                fileOption.addEventListener('click', () => setUploadMode('file'));
+                
+                // Selección manual de archivos
+                jsonDropZone.addEventListener('click', () => {
+                    if (uploadMode === 'folder' && !browserSupport.folderInput) {
+                        alert('Tu navegador no soporta la selección de carpetas. Por favor, arrastra y suelta las carpetas directamente en esta zona.');
+                        return;
+                    }
+                    jsonFileInput.click();
+                });
+                
+                // Accesibilidad: activar con tecla Enter o espacio
+                jsonDropZone.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        jsonFileInput.click();
+                        e.preventDefault();
+                    }
+                });
+                
+                // Cambio de archivos
+                jsonFileInput.addEventListener('change', handleFileInputChange);
+                
+                // Transformar JSON
+                transformJsonBtn.addEventListener('click', transformJsonFiles);
+                
+                // Descargar todos los archivos
+                downloadAllBtn.addEventListener('click', () => downloadTransformedFiles('all'));
+                
+                // Descargar archivo seleccionado
+                downloadSelectedBtn.addEventListener('click', () => downloadTransformedFiles('selected'));
+                
+                // Cambiar archivo de editor
+                fileSelector.addEventListener('change', updateJsonEditor);
+                
+                // Guardar cambios en el editor
+                saveChangesBtn.addEventListener('click', saveEditorChanges);
+                
+                // Revertir cambios en el editor
+                revertChangesBtn.addEventListener('click', revertEditorChanges);
+                
+                // Reiniciar proceso
+                resetProcessBtn.addEventListener('click', resetProcess);
+                
+                // Drag and drop para JSON
+                jsonDropZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    jsonDropZone.style.backgroundColor = 'rgba(74, 111, 165, 0.1)';
+                });
+                
+                jsonDropZone.addEventListener('dragleave', () => {
+                    jsonDropZone.style.backgroundColor = '';
+                });
+                
+                jsonDropZone.addEventListener('drop', handleDrop);
+            }
+
+            function handleDrop(e) {
+                e.preventDefault();
+                jsonDropZone.style.backgroundColor = '';
+                
+                // Obtener todos los archivos del dataTransfer
+                const droppedFiles = Array.from(e.dataTransfer.files);
+                let files = [];
+
+                // Filtrar archivos según el modo
+                if (uploadMode === 'folder') {
+                    // En modo carpeta, aceptamos todos los archivos
+                    files = droppedFiles;
+                } else {
+                    // En modo archivo, solo aceptamos JSON
+                    files = droppedFiles.filter(file => file.name.toLowerCase().endsWith('.json'));
+                }
+
+                if (files.length > 0) {
+                    allFiles = [...allFiles, ...files];
+                    jsonFiles = allFiles.filter(file => file.name.toLowerCase().endsWith('.json'));
+                    renderFileList();
+                    renderFolderStructure();
+
+                    // Animación de confirmación
+                    jsonDropZone.innerHTML = `
+                        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                        <p>${files.length} archivo(s) cargado(s)</p>
+                        <p class="small text-muted">Haz clic para agregar más</p>
+                    `;
+                    setTimeout(() => {
+                        updateDropZoneText();
+                    }, 2000);
+                } else {
+                    alert(uploadMode === 'folder' 
+                        ? 'Por favor, arrastra carpetas con archivos RIPS' 
+                        : 'Por favor, arrastra archivos JSON válidos');
+                }
+            }
+
+            function setUploadMode(mode) {
+                uploadMode = mode;
+                
+                // Actualizar UI
+                if (mode === 'folder') {
+                    folderOption.classList.add('active');
+                    fileOption.classList.remove('active');
+                    jsonFileInput.setAttribute('webkitdirectory', '');
+                    jsonFileInput.setAttribute('directory', '');
+                    jsonFileInput.removeAttribute('accept');
+                    
+                    // Deshabilitar drop zone si no hay soporte
+                    if (!browserSupport.folderInput && !browserSupport.directoryDrop) {
+                        jsonDropZone.classList.add('drop-zone-disabled');
+                    } else {
+                        jsonDropZone.classList.remove('drop-zone-disabled');
+                    }
+                } else {
+                    folderOption.classList.remove('active');
+                    fileOption.classList.add('active');
+                    jsonFileInput.removeAttribute('webkitdirectory');
+                    jsonFileInput.removeAttribute('directory');
+                    jsonFileInput.setAttribute('accept', '.json');
+                    jsonDropZone.classList.remove('drop-zone-disabled');
+                }
+                
+                updateDropZoneText();
+            }
+
+            function updateDropZoneText() {
+                if (uploadMode === 'folder') {
+                    if (!browserSupport.folderInput && !browserSupport.directoryDrop) {
+                        jsonDropZone.innerHTML = `
+                            <i class="fas fa-exclamation-triangle fa-3x mb-3 text-warning"></i>
+                            <p>Tu navegador no soporta carpetas</p>
+                            <p class="small text-muted">Usa Chrome o Edge para una experiencia completa</p>
+                        `;
+                    } else {
+                        jsonDropZone.innerHTML = `
+                            <i class="fas fa-cloud-upload-alt fa-3x mb-3"></i>
+                            <p>Arrastra y suelta tus carpetas con archivos RIPS aquí</p>
+                            <p class="small text-muted">o haz clic para seleccionar carpetas</p>
+                        `;
+                    }
+                } else {
+                    jsonDropZone.innerHTML = `
+                        <i class="fas fa-cloud-upload-alt fa-3x mb-3"></i>
+                        <p>Arrastra y suelta tus archivos JSON aquí</p>
+                        <p class="small text-muted">o haz clic para seleccionar</p>
+                    `;
+                }
+            }
+
+            function handleFileInputChange() {
+                if (jsonFileInput.files.length) {
+                    const files = Array.from(jsonFileInput.files);
+                    
+                    // En modo carpeta, aceptamos todos los archivos
+                    // En modo archivo, filtramos solo JSON
+                    const filteredFiles = uploadMode === 'folder' 
+                        ? files 
+                        : files.filter(file => file.name.toLowerCase().endsWith('.json'));
+                    
+                    if (filteredFiles.length > 0) {
+                        allFiles = [...allFiles, ...filteredFiles];
+                        jsonFiles = allFiles.filter(file => file.name.toLowerCase().endsWith('.json'));
+                        renderFileList();
+                        renderFolderStructure();
+                    } else {
+                        alert(uploadMode === 'folder' 
+                            ? 'La carpeta seleccionada no contiene archivos' 
+                            : 'Por favor, selecciona archivos JSON válidos');
+                    }
+                    
+                    // Limpiar el input para permitir seleccionar los mismos archivos otra vez
+                    jsonFileInput.value = '';
+                }
+            }
+
+            function renderFolderStructure() {
+                if (allFiles.length === 0) {
+                    folderStructure.innerHTML = '<div class="text-muted">No se han seleccionado archivos</div>';
+                    return;
+                }
+                
+                folderTree = {};
+                
+                // Construir estructura de carpetas
+                allFiles.forEach(file => {
+                    const path = file.webkitRelativePath || file.name;
+                    const parts = path.split('/');
+                    let currentLevel = folderTree;
+                    
+                    for (let i = 0; i < parts.length; i++) {
+                        const part = parts[i];
+                        if (!currentLevel[part]) {
+                            currentLevel[part] = {};
+                        }
+                        currentLevel = currentLevel[part];
+                    }
+                });
+                
+                // Renderizar estructura
+                folderStructure.innerHTML = '<div class="mb-2"><strong>Estructura de carpetas:</strong></div>';
+                renderTree(folderTree, folderStructure);
+            }
+            
+            function renderTree(tree, container, path = '') {
+                for (const key in tree) {
+                    if (Object.keys(tree[key]).length === 0) {
+                        // Es un archivo
+                        const fileEl = document.createElement('div');
+                        fileEl.className = 'file-item';
+                        
+                        // Obtener el tipo de archivo para el badge
+                        const fileType = getFileType(key);
+                        fileEl.innerHTML = `
+                            ${key} <span class="file-type-badge file-type-${fileType}">${fileType.toUpperCase()}</span>
+                        `;
+                        container.appendChild(fileEl);
+                    } else {
+                        // Es una carpeta
+                        const folderEl = document.createElement('div');
+                        folderEl.className = 'folder-item folder-expanded';
+                        folderEl.innerHTML = `
+                            <span class="folder-toggle">
+                                <i class="fas fa-folder-open"></i> ${key}
+                            </span>
+                        `;
+                        
+                        const folderContents = document.createElement('div');
+                        folderContents.className = 'folder-contents';
+                        
+                        container.appendChild(folderEl);
+                        container.appendChild(folderContents);
+                        
+                        // Renderizar contenido de la carpeta
+                        renderTree(tree[key], folderContents, `${path}${key}/`);
+                        
+                        // Agregar event listener para expandir/colapsar
+                        folderEl.querySelector('.folder-toggle').addEventListener('click', (e) => {
+                            const isExpanded = folderEl.classList.contains('folder-expanded');
+                            if (isExpanded) {
+                                folderEl.classList.remove('folder-expanded');
+                                folderEl.classList.add('folder-collapsed');
+                                e.target.querySelector('i').className = 'fas fa-folder';
+                            } else {
+                                folderEl.classList.remove('folder-collapsed');
+                                folderEl.classList.add('folder-expanded');
+                                e.target.querySelector('i').className = 'fas fa-folder-open';
+                            }
+                        });
+                    }
+                }
+            }
+
+            function getFileType(filename) {
+                if (filename.toLowerCase().endsWith('.json')) return 'json';
+                if (filename.toLowerCase().endsWith('.pdf')) return 'pdf';
+                if (filename.toLowerCase().endsWith('.xml')) return 'xml';
+                return 'other';
+            }
+
+            function getFileIcon(filename) {
+                if (filename.toLowerCase().endsWith('.json')) return 'fa-file-code';
+                if (filename.toLowerCase().endsWith('.pdf')) return 'fa-file-pdf';
+                if (filename.toLowerCase().endsWith('.xml')) return 'fa-file-code';
+                return 'fa-file';
+            }
+
+            function renderFileList() {
+                if (allFiles.length === 0) {
+                    fileList.innerHTML = '<div class="alert alert-info">No hay archivos seleccionados</div>';
+                    return;
+                }
+                
+                fileList.innerHTML = '';
+                
+                allFiles.forEach((file, index) => {
+                    const fileCard = document.createElement('div');
+                    fileCard.className = 'file-card';
+                    
+                    const fileType = getFileType(file.name);
+                    const fileIcon = getFileIcon(file.name);
+                    
+                    fileCard.innerHTML = `
+                        <div class="file-info">
+                            <div>
+                                <i class="fas ${fileIcon} me-2 text-primary"></i>${file.webkitRelativePath || file.name}
+                                <span class="file-type-badge file-type-${fileType}">${fileType.toUpperCase()}</span>
+                            </div>
+                            <div class="small text-muted">${formatFileSize(file.size)}</div>
+                        </div>
+                        <div class="file-actions">
+                            <button class="btn btn-sm btn-outline-danger remove-file-btn" data-index="${index}">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                    fileList.appendChild(fileCard);
+                });
+                
+                // Agregar event listeners para botones de eliminación
+                document.querySelectorAll('.remove-file-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        allFiles.splice(index, 1);
+                        jsonFiles = allFiles.filter(file => file.name.toLowerCase().endsWith('.json'));
+                        renderFileList();
+                        renderFolderStructure();
+                    });
+                });
+            }
+
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            // Función para transformar archivos JSON con procesamiento optimizado
+            async function transformJsonFiles() {
+                if (jsonFiles.length === 0) {
+                    alert("Por favor selecciona al menos un archivo JSON.");
+                    return;
+                }
+
+                processingSection.classList.remove('hidden');
+                transformResults.classList.add('hidden');
+                updateProgress(5);
+                
+                // Resetear contadores
+                totalTransformations = 0;
+                totalErrors = 0;
+                transformedFiles = [];
+                transformationsList.innerHTML = '';
+                fileSelector.innerHTML = '<option value="">Seleccione un archivo para editar</option>';
+                errorDetailsSection.innerHTML = '';
+                
+                // Preparar la cola de procesamiento
+                processingQueue = [...jsonFiles];
+                isProcessing = true;
+                
+                // Agregar animación de procesamiento
+                progressFill.classList.add('processing-pulse');
+                
+                // Procesar archivos uno por uno
+                await processQueue();
+                
+                // Cuando todos los archivos estén procesados
+                updateProgress(100);
+                showTransformResults();
+                
+                // Quitar animación de procesamiento
+                progressFill.classList.remove('processing-pulse');
+            }
+
+            async function processQueue() {
+                while (processingQueue.length > 0 && isProcessing) {
+                    const file = processingQueue.shift();
+                    const progress = 5 + Math.floor(((jsonFiles.length - processingQueue.length) / jsonFiles.length) * 90);
+                    updateProgress(progress);
+                    
+                    // Mostrar el archivo actual
+                    currentFileName.textContent = file.name;
+                    
+                    try {
+                        const transformed = await processFile(file);
+                        transformedFiles.push(transformed);
+                        
+                        // Actualizar contadores
+                        totalTransformations += transformed.transformations.length;
+                        totalErrors += transformed.errors.length;
+                        
+                        // Agregar al selector de vista previa
+                        const option = document.createElement('option');
+                        option.value = transformedFiles.length - 1;
+                        option.textContent = file.webkitRelativePath || file.name;
+                        fileSelector.appendChild(option);
+                        
+                        // Esperar un ciclo de evento para evitar bloquear la UI
+                        await new Promise(resolve => setTimeout(resolve, 50));
+                    } catch (error) {
+                        console.error('Error procesando archivo:', file.name, error);
+                        showError(`Error procesando ${file.name}: ${error.message}`);
+                    }
+                }
+            }
+
+            function processFile(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        try {
+                            const originalData = JSON.parse(e.target.result);
+                            const transformedData = JSON.parse(JSON.stringify(originalData)); // Copia profunda
+                            const transformations = [];
+                            const errors = [];
+                            
+                            // Aplicar transformaciones
+                            applyTransformations(transformedData, transformations, errors, file.name);
+                            
+                            resolve({
+                                name: file.name,
+                                path: file.webkitRelativePath || file.name,
+                                original: originalData,
+                                transformed: transformedData,
+                                transformations: transformations,
+                                errors: errors
+                            });
+                        } catch (error) {
+                            reject(error);
+                        }
+                    };
+                    
+                    reader.onerror = function() {
+                        reject(new Error('Error al leer el archivo'));
+                    };
+                    
+                    reader.readAsText(file);
+                });
+            }
+
+            function applyTransformations(data, transformations, errors, fileName) {
+                // Función recursiva para recorrer todo el objeto JSON
+                function traverseAndTransform(obj, path = '') {
+                    if (Array.isArray(obj)) {
+                        obj.forEach((item, index) => {
+                            traverseAndTransform(item, `${path}[${index}]`);
+                        });
+                    } else if (obj && typeof obj === 'object') {
+                        for (const key in obj) {
+                            if (obj.hasOwnProperty(key)) {
+                                const newPath = path ? `${path}.${key}` : key;
+                                const value = obj[key];
+                                
+                                // Validar y transformar campos según las reglas
+                                if (key === 'modalidadGrupoServicioTecSal' && value !== "01") {
+                                    const oldValue = value;
+                                    obj[key] = "01";
+                                    transformations.push({
+                                        type: 'field',
+                                        field: key,
+                                        before: oldValue,
+                                        after: "01",
+                                        path: newPath,
+                                        description: `Campo ${key} cambiado de "${oldValue}" a "01"`
+                                    });
+                                }
+                                
+                                if (key === 'grupoServicios') {
+                                    // Verificar si estamos en consultas o procedimientos
+                                    const parentPath = path.toLowerCase();
+                                    let expectedValue = "01"; // Valor por defecto para consultas
+                                    
+                                    if (parentPath.includes('procedimientos')) {
+                                        expectedValue = "02";
+                                    }
+                                    
+                                    if (value !== expectedValue) {
+                                        const oldValue = value;
+                                        obj[key] = expectedValue;
+                                        transformations.push({
+                                            type: 'field',
+                                            field: key,
+                                            before: oldValue,
+                                            after: expectedValue,
+                                        path: newPath,
+                                        description: `Campo ${key} cambiado de "${oldValue}" a "${expectedValue}" (${parentPath.includes('procedimientos') ? 'procedimiento' : 'consulta'})`
+                                        });
+                                    }
+                                }
+                                
+                                if (key === 'finalidadTecnologiaSalud' && value !== "15") {
+                                    const oldValue = value;
+                                    obj[key] = "15";
+                                    transformations.push({
+                                        type: 'field',
+                                        field: key,
+                                        before: oldValue,
+                                        after: "15",
+                                        path: newPath,
+                                        description: `Campo ${key} cambiado de "${oldValue}" a "15"`
+                                    });
+                                }
+                                
+                                if (key === 'causaMotivoAtencion' && value !== "38") {
+                                    const oldValue = value;
+                                    obj[key] = "38";
+                                    transformations.push({
+                                        type: 'field',
+                                        field: key,
+                                        before: oldValue,
+                                        after: "38",
+                                        path: newPath,
+                                        description: `Campo ${key} cambiado de "${oldValue}" a "38"`
+                                    });
+                                }
+
+                                // === NUEVAS VALIDACIONES Y TRANSFORMACIONES ===
+                                
+                                // Transformación: Cambiar codPaisOrigen de "170" a "862" cuando tipoDocumentoIdentificacion es "PT"
+                                if (key === 'tipoDocumentoIdentificacion' && value === 'PT') {
+                                    if (obj.hasOwnProperty('codPaisOrigen') && obj.codPaisOrigen === '170') {
+                                        const oldValue = obj.codPaisOrigen;
+                                        obj.codPaisOrigen = '862';
+                                        transformations.push({
+                                            type: 'field',
+                                            field: 'codPaisOrigen',
+                                            before: oldValue,
+                                            after: '862',
+                                            path: path ? `${path}.codPaisOrigen` : 'codPaisOrigen',
+                                            description: `Campo codPaisOrigen cambiado de "${oldValue}" a "862" porque tipoDocumentoIdentificacion es "PT"`
+                                        });
+                                    }
+                                }
+
+                                if (key === 'codPaisOrigen' && value === '170') {
+                                    if (obj.hasOwnProperty('tipoDocumentoIdentificacion') && obj.tipoDocumentoIdentificacion === 'PT') {
+                                        const oldValue = value;
+                                        obj[key] = '862';
+                                        transformations.push({
+                                            type: 'field',
+                                            field: key,
+                                            before: oldValue,
+                                            after: '862',
+                                            path: newPath,
+                                            description: `Campo ${key} cambiado de "${oldValue}" a "862" porque tipoDocumentoIdentificacion es "PT"`
+                                        });
+                                    }
+                                }
+
+                                // Validación: codDiagnosticoPrincipal no puede estar vacío o null
+                                if (key === 'codDiagnosticoPrincipal') {
+                                    if (value === null || value === '') {
+                                        errors.push({
+                                            field: key,
+                                            message: `El campo ${key} no puede estar vacío en la ruta ${newPath}`,
+                                            path: newPath,
+                                            value: value
+                                        });
+                                    }
+                                }
+
+                                // Validación: tipoDocumentoIdentificacion no puede ser null
+                                if (key === 'tipoDocumentoIdentificacion' && value === null) {
+                                    errors.push({
+                                        field: key,
+                                        message: `El campo ${key} no puede ser null en la ruta ${newPath}`,
+                                        path: newPath,
+                                        value: value
+                                    });
+                                }
+
+                                // === NUEVA VALIDACIÓN: tipoUsuario debe ser dos dígitos ===
+                                if (key === 'tipoUsuario') {
+                                    // Validar que tipoUsuario sea exactamente dos dígitos
+                                    if (typeof value !== 'string' || !/^\d{2}$/.test(value)) {
+                                        errors.push({
+                                            field: key,
+                                            message: `El campo ${key} debe ser una cadena de exactamente dos dígitos, pero es "${value}"`,
+                                            path: newPath,
+                                            value: value
+                                        });
+                                    }
+                                }
+
+                                // Validación: numAutorizacion no puede estar vacío o null
+                                if (key === 'numAutorizacion') {
+                                    if (value === null || value === '') {
+                                        errors.push({
+                                            field: key,
+                                            message: `El campo ${key} no puede estar vacío en la ruta ${newPath}`,
+                                            path: newPath,
+                                            value: value
+                                        });
+                                    }
+                                }
+                                
+                                // === VALIDACIÓN TIPO DE USUARIO Y RÉGIMEN ===
+                                
+                                // Validar que el tipo de usuario corresponda con el régimen
+                                if (key === 'codRegimen') {
+                                    // Obtener el tipo de usuario si existe
+                                    const tipoUsuario = obj.hasOwnProperty('tipoUsuario') ? obj.tipoUsuario : null;
+                                    
+                                    if (tipoUsuario !== null) {
+                                        // Régimen subsidiado (04) debe tener tipoUsuario 04
+                                        if (value === '04' && tipoUsuario !== '04') {
+                                            errors.push({
+                                                field: 'tipoUsuario',
+                                                message: `Para régimen subsidiado (04), el tipo de usuario debe ser "04" pero es "${tipoUsuario}"`,
+                                                path: path ? `${path}.tipoUsuario` : 'tipoUsuario',
+                                                value: tipoUsuario
+                                            });
+                                        }
+                                        
+                                        // Régimen contributivo (01, 02, 03, 06, 07, 08) debe tener tipoUsuario 01, 02 o 03
+                                        const regimenesContributivos = ['01', '02', '03', '06', '07', '08'];
+                                        const tiposUsuarioContributivo = ['01', '02', '03'];
+                                        
+                                        if (regimenesContributivos.includes(value) && !tiposUsuarioContributivo.includes(tipoUsuario)) {
+                                            errors.push({
+                                                field: 'tipoUsuario',
+                                                message: `Para régimen contributivo (${value}), el tipo de usuario debe ser "01", "02" o "03" pero es "${tipoUsuario}"`,
+                                                path: path ? `${path}.tipoUsuario` : 'tipoUsuario',
+                                                value: tipoUsuario
+                                            });
+                                        }
+                                    }
+                                }
+                                
+                                // Continuar recorriendo el objeto
+                                traverseAndTransform(obj[key], newPath);
+                            }
+                        }
+                    }
+                }
+                
+                // Iniciar el recorrido recursivo
+                traverseAndTransform(data);
+            }
+
+            function updateJsonEditor() {
+                const index = fileSelector.value;
+                if (index === "" || !transformedFiles[index]) {
+                    jsonEditor.value = "Seleccione un archivo para editar";
+                    jsonEditor.setAttribute('readonly', true);
+                    saveChangesBtn.disabled = true;
+                    revertChangesBtn.disabled = true;
+                    currentEditorIndex = -1;
+                    return;
+                }
+                
+                const file = transformedFiles[index];
+                const jsonText = JSON.stringify(file.transformed, null, 2);
+                jsonEditor.value = jsonText;
+                jsonEditor.removeAttribute('readonly');
+                saveChangesBtn.disabled = false;
+                revertChangesBtn.disabled = false;
+                currentEditorIndex = index;
+                originalEditorContent = jsonText;
+                
+                // Limpiar errores
+                jsonError.classList.add('hidden');
+            }
+
+            function saveEditorChanges() {
+                if (currentEditorIndex === -1) return;
+                
+                try {
+                    const editedJson = JSON.parse(jsonEditor.value);
+                    transformedFiles[currentEditorIndex].transformed = editedJson;
+                    
+                    // Mostrar mensaje de éxito
+                    showError('Cambios guardados correctamente.', 'success');
+                    
+                    // Actualizar contenido original
+                    originalEditorContent = jsonEditor.value;
+                    
+                } catch (error) {
+                    // Mostrar error de JSON inválido
+                    jsonError.textContent = `Error en el formato JSON: ${error.message}`;
+                    jsonError.classList.remove('hidden');
+                    jsonEditor.classList.add('json-error');
+                }
+            }
+
+            function revertEditorChanges() {
+                if (currentEditorIndex === -1) return;
+                
+                const file = transformedFiles[currentEditorIndex];
+                const originalJsonText = JSON.stringify(file.transformed, null, 2);
+                jsonEditor.value = originalJsonText;
+                originalEditorContent = originalJsonText;
+                
+                // Limpiar errores
+                jsonError.classList.add('hidden');
+                jsonEditor.classList.remove('json-error');
+            }
+
+            function showTransformResults() {
+                processingSection.classList.add('hidden');
+                transformResults.classList.remove('hidden');
+                
+                // Mostrar resumen de transformaciones
+                let totalTransforms = 0;
+                let totalErrors = 0;
+                
+                transformedFiles.forEach((file, index) => {
+                    if (file.transformations.length > 0 || file.errors.length > 0) {
+                        const fileTransform = document.createElement('div');
+                        fileTransform.className = 'transform-item';
+                        fileTransform.innerHTML = `
+                            <h6><i class="fas fa-file-code me-2"></i>${file.path}</h6>
+                            <div class="small">Transformaciones aplicadas: ${file.transformations.length}</div>
+                            <div class="small ${file.errors.length ? 'text-danger' : ''}">Errores encontrados: ${file.errors.length}</div>
+                        `;
+                        
+                        // Mostrar hasta 3 transformaciones por archivo
+                        file.transformations.slice(0, 3).forEach(transform => {
+                            fileTransform.innerHTML += `
+                                <div class="small mt-2">
+                                    <i class="fas fa-arrow-right me-2 text-success"></i>
+                                    ${transform.description}
+                                </div>
+                            `;
+                        });
+                        
+                        // Si hay más transformaciones, mostrar mensaje
+                        if (file.transformations.length > 3) {
+                            fileTransform.innerHTML += `
+                                <div class="small mt-2 text-muted">
+                                    + ${file.transformations.length - 3} transformaciones más...
+                                </div>
+                            `;
+                        }
+                        
+                        // Mostrar hasta 3 errores por archivo
+                        file.errors.slice(0, 3).forEach(error => {
+                            fileTransform.innerHTML += `
+                                <div class="small mt-2 text-danger">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    ${error.message}
+                                </div>
+                            `;
+                        });
+                        
+                        // Si hay más errores, mostrar mensaje
+                        if (file.errors.length > 3) {
+                            fileTransform.innerHTML += `
+                                <div class="small mt-2 text-danger">
+                                    + ${file.errors.length - 3} errores más...
+                                </div>
+                            `;
+                        }
+                        
+                        transformationsList.appendChild(fileTransform);
+                        totalTransforms += file.transformations.length;
+                        totalErrors += file.errors.length;
+                    }
+                });
+                
+                // Si no hubo transformaciones ni errores
+                if (totalTransforms === 0 && totalErrors === 0) {
+                    transformationsList.innerHTML = `
+                        <div class="alert alert-info">
+                            No se aplicaron transformaciones ni se encontraron errores en los archivos. Todos los datos cumplen con las reglas requeridas.
+                        </div>
+                    `;
+                }
+                
+                // Mostrar detalles de errores
+                showErrorDetails();
+                
+                // Mostrar resultados de validación
+                showValidationResults(totalTransforms, totalErrors);
+            }
+
+            function showErrorDetails() {
+                let hasErrors = false;
+                errorDetailsSection.innerHTML = '';
+                
+                transformedFiles.forEach(file => {
+                    if (file.errors.length > 0) {
+                        hasErrors = true;
+                        const errorCard = document.createElement('div');
+                        errorCard.className = 'card mb-4';
+                        errorCard.innerHTML = `
+                            <div class="card-header bg-danger text-white">
+                                <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Errores en ${file.path}</h5>
+                            </div>
+                            <div class="card-body">
+                                ${file.errors.map(error => `
+                                    <div class="error-item">
+                                        <strong>${error.field}</strong>: ${error.message}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
+                        errorDetailsSection.appendChild(errorCard);
+                    }
+                });
+                
+                if (!hasErrors) {
+                    errorDetailsSection.innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            No se encontraron errores en los archivos procesados
+                        </div>
+                    `;
+                }
+            }
+
+            function showValidationResults(totalTransforms, totalErrors) {
+                validationResults.innerHTML = `
+                    <div class="validation-item ${allFiles.length > 0 ? 'valid-item' : 'invalid-item'}">
+                        <i class="fas ${allFiles.length > 0 ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+                        <div>Archivos cargados: ${allFiles.length}</div>
+                    </div>
+                    <div class="validation-item ${jsonFiles.length > 0 ? 'valid-item' : 'invalid-item'}">
+                        <i class="fas ${jsonFiles.length > 0 ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i>
+                        <div>Archivos JSON para procesar: ${jsonFiles.length}</div>
+                    </div>
+                    <div class="validation-item ${totalTransforms > 0 ? 'valid-item' : 'invalid-item'}">
+                        <i class="fas ${totalTransforms > 0 ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i>
+                        <div>Transformaciones aplicadas: ${totalTransforms}</div>
+                    </div>
+                    <div class="validation-item ${totalErrors === 0 ? 'valid-item' : 'invalid-item'}">
+                        <i class="fas ${totalErrors === 0 ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i>
+                        <div>Errores encontrados: ${totalErrors}</div>
+                    </div>
+                `;
+            }
+
+            function downloadTransformedFiles(type) {
+                if (transformedFiles.length === 0 && allFiles.length === 0) {
+                    alert("No hay archivos para descargar.");
+                    return;
+                }
+                
+                if (type === 'selected') {
+                    const index = fileSelector.value;
+                    if (index === "") {
+                        alert("Por favor selecciona un archivo para descargar.");
+                        return;
+                    }
+                    
+                    const file = transformedFiles[index];
+                    downloadJsonFile(file.transformed, file.name);
+                } else {
+                    // Descargar todos los archivos como un ZIP
+                    createAndDownloadZip();
+                }
+            }
+
+            function createAndDownloadZip() {
+                const zip = new JSZip();
+                
+                // Agregar archivos JSON transformados al ZIP
+                transformedFiles.forEach(file => {
+                    const filePath = file.path;
+                    const jsonStr = JSON.stringify(file.transformed, null, 2);
+                    zip.file(filePath, jsonStr);
+                });
+                
+                // Agregar archivos no JSON al ZIP (sin modificar)
+                allFiles.forEach(file => {
+                    if (!file.name.toLowerCase().endsWith('.json')) {
+                        // Para archivos no JSON, los agregamos directamente
+                        zip.file(file.webkitRelativePath || file.name, file);
+                    }
+                });
+                
+                // Generar el ZIP y descargarlo
+                zip.generateAsync({type:"blob"}).then(function(content) {
+                    // Crear enlace de descarga
+                    const a = document.createElement('a');
+                    const url = URL.createObjectURL(content);
+                    a.href = url;
+                    a.download = 'archivos_transformados.zip';
+                    document.body.appendChild(a);
+                    a.click();
+                    
+                    // Limpiar
+                    setTimeout(function() {
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);  
+                    }, 0);
+                });
+            }
+
+            function downloadJsonFile(data, filename) {
+                const jsonStr = JSON.stringify(data, null, 2);
+                const blob = new Blob([jsonStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            function updateProgress(percent) {
+                progressFill.style.width = `${percent}%`;
+                progressFill.setAttribute('aria-valuenow', percent);
+                progressText.textContent = `${percent}%`;
+            }
+
+            function showError(message, type = 'danger') {
+                const errorEl = document.createElement('div');
+                errorEl.className = `alert alert-${type}`;
+                errorEl.textContent = message;
+                document.querySelector('.container').prepend(errorEl);
+                
+                // Auto-eliminar después de 5 segundos
+                setTimeout(() => {
+                    errorEl.remove();
+                }, 5000);
+            }
+
+            function resetProcess() {
+                allFiles = [];
+                jsonFiles = [];
+                transformedFiles = [];
+                processingQueue = [];
+                isProcessing = false;
+                
+                // Limpiar UI
+                fileList.innerHTML = '<div class="alert alert-info">No hay archivos seleccionados</div>';
+                folderStructure.innerHTML = '<div class="text-muted">No se han seleccionado archivos</div>';
+                jsonEditor.value = 'Seleccione un archivo para editar';
+                jsonEditor.setAttribute('readonly', true);
+                fileSelector.innerHTML = '<option value="">Seleccione un archivo para editar</option>';
+                validationResults.innerHTML = '';
+                transformationsList.innerHTML = '';
+                errorDetailsSection.innerHTML = '';
+                
+                // Deshabilitar botones de editor
+                saveChangesBtn.disabled = true;
+                revertChangesBtn.disabled = true;
+                
+                // Limpiar errores
+                jsonError.classList.add('hidden');
+                jsonEditor.classList.remove('json-error');
+                
+                // Ocultar secciones
+                processingSection.classList.add('hidden');
+                transformResults.classList.add('hidden');
+                
+                // Resetear input de archivo
+                jsonFileInput.value = '';
+                
+                // Actualizar texto de la zona de drop
+                updateDropZoneText();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1929 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RIPS JSON 2275 — Corrección y validación de datos médicos según resolución 2275 de 2023</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2b4d8c;
+            --secondary-color: #4a6fa5;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-logo {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+        }
+        
+        .sidebar-menu {
+            border: none;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .sidebar-menu .list-group-item {
+            border: none;
+            padding: 12px 15px;
+            transition: all 0.3s;
+        }
+        
+        .sidebar-menu .list-group-item:hover {
+            background-color: rgba(43, 77, 140, 0.1);
+        }
+        
+        .sidebar-menu .list-group-item.active {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stats-card {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: var(--light-color);
+            margin-bottom: 15px;
+        }
+        
+        .stats-card i {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .stats-card h3 {
+            font-size: 1.8rem;
+            margin: 10px 0;
+            color: var(--dark-color);
+        }
+        
+        .stats-card p {
+            color: #6c757d;
+            margin: 0;
+        }
+        
+        .feature-highlight {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            border-left: 5px solid var(--primary-color);
+        }
+        
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        .feature-title i {
+            margin-right: 10px;
+        }
+        
+        .feature-list {
+            text-align: left;
+            max-width: 500px;
+            margin: 20px auto;
+        }
+        
+        .feature-list li {
+            margin-bottom: 10px;
+            padding-left: 10px;
+        }
+        
+        .feature-button {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(43, 77, 140, 0.3);
+        }
+        
+        .feature-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(43, 77, 140, 0.4);
+        }
+        
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .dashboard-header-title {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            background-color: rgba(43, 77, 140, 0.1);
+            color: var(--primary-color);
+            font-size: 1.5rem;
+        }
+        
+        .stat-title {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--dark-color);
+        }
+        
+        .section-title {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .recent-files, .transform-history {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            height: 100%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .recent-file-item, .history-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f1f1;
+        }
+        
+        .recent-file-item:last-child, .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .recent-file-icon, .history-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            background-color: rgba(43, 77, 140, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .recent-file-info, .history-content {
+            flex-grow: 1;
+        }
+        
+        .recent-file-name, .history-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .recent-file-meta, .history-meta {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        
+        .history-stats {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+        
+        .history-stat {
+            background-color: #f8f9fa;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
+        .dashboard-card {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .dashboard-title {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        .dashboard-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin: 10px 0;
+        }
+        
+        .dashboard-footer {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .file-type-indicator {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+        }
+        
+        .json-file {
+            background-color: #007bff;
+        }
+        
+        .pdf-file {
+            background-color: #dc3545;
+        }
+        
+        .xml-file {
+            background-color: #ffc107;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .performance-warning {
+            display: flex;
+            align-items: center;
+            background-color: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid var(--warning-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .performance-warning i {
+            color: var(--warning-color);
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+        
+        .upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background-color: #f8f9fa;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(43, 77, 140, 0.05);
+        }
+        
+        .upload-area i {
+            font-size: 3rem;
+            color: #6c757d;
+            margin-bottom: 15px;
+        }
+        
+        .folder-structure {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            background-color: #f8f9fa;
+        }
+        
+        .folder-item, .file-item {
+            padding: 5px 0;
+            margin-left: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .folder-toggle {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        
+        .folder-toggle i {
+            margin-right: 5px;
+            color: #ffc107;
+        }
+        
+        .folder-contents {
+            margin-left: 20px;
+        }
+        
+        .folder-expanded .folder-contents {
+            display: block;
+        }
+        
+        .folder-collapsed .folder-contents {
+            display: none;
+        }
+        
+        .file-actions, .folder-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .file-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            background-color: white;
+        }
+        
+        .file-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .file-editor {
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            margin-top: 15px;
+            background-color: white;
+        }
+        
+        .file-path {
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            border-bottom: 1px solid #e9ecef;
+            font-family: monospace;
+        }
+        
+        #fileContentEditor {
+            height: 400px;
+            font-family: monospace;
+            border: none;
+            resize: none;
+        }
+        
+        .file-editor-actions {
+            padding: 10px 15px;
+            border-top: 1px solid #e9ecef;
+            text-align: right;
+        }
+        
+        .transform-option {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .transform-option h5 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .transform-description {
+            color: #6c757d;
+            margin-bottom: 15px;
+        }
+        
+        .transform-example {
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        
+        .replacement-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        .replacement-table th, .replacement-table td {
+            border: 1px solid #dee2e6;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        
+        .replacement-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .replacement-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .btn-transform {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(43, 77, 140, 0.3);
+        }
+        
+        .btn-transform:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(43, 77, 140, 0.4);
+        }
+        
+        .progress-container {
+            margin-bottom: 20px;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 5px;
+            transition: width 0.3s;
+            width: 0%;
+        }
+        
+        .processing-pulse {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .current-file {
+            display: flex;
+            align-items: center;
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 5px;
+        }
+        
+        .validation-results {
+            margin-top: 20px;
+        }
+        
+        .validation-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .valid-item {
+            background-color: rgba(40, 167, 69, 0.1);
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .invalid-item {
+            background-color: rgba(220, 53, 69, 0.1);
+            border-left: 4px solid var(--danger-color);
+        }
+        
+        .validation-item i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .valid-item i {
+            color: var(--success-color);
+        }
+        
+        .invalid-item i {
+            color: var(--danger-color);
+        }
+        
+        .transform-summary {
+            margin-bottom: 30px;
+        }
+        
+        .transform-item {
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .json-viewer {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+        }
+        
+        .error-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f1f1;
+        }
+        
+        .error-item:last-child {
+            border-bottom: none;
+        }
+        
+        footer {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 40px 0 20px;
+            margin-top: 50px;
+        }
+        
+        footer h5 {
+            color: #fff;
+            margin-bottom: 15px;
+        }
+        
+        footer a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        footer a:hover {
+            color: white;
+        }
+        
+        /* Nuevos estilos para procesamiento por lotes */
+        .batch-processing {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .batch-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s;
+            border: 1px solid #e9ecef;
+        }
+        
+        .batch-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .batch-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            font-size: 1.8rem;
+        }
+        
+        .batch-title {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .batch-description {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .status-active {
+            background-color: var(--success-color);
+        }
+        
+        .status-inactive {
+            background-color: #6c757d;
+        }
+        
+        .status-error {
+            background-color: var(--danger-color);
+        }
+        
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .search-box input {
+            padding-right: 40px;
+        }
+        
+        .search-box i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+        
+        .tabs-container {
+            margin-bottom: 20px;
+        }
+        
+        .nav-tabs .nav-link {
+            border: none;
+            color: #6c757d;
+            font-weight: 500;
+            padding: 10px 20px;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+            background-color: transparent;
+        }
+        
+        .analytics-chart {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .chart-placeholder {
+            height: 200px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            margin-top: 15px;
+        }
+        
+        .tooltip-icon {
+            color: #6c757d;
+            margin-left: 5px;
+            cursor: help;
+        }
+        
+        /* Estilos para formularios de programación */
+        .schedule-form {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .form-section {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .form-section-title {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .dashboard-header-actions {
+                margin-top: 15px;
+            }
+            
+            .quick-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .feature-highlight {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Encabezado -->
+    <header>
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center py-3">
+                <div class="d-flex align-items-center">
+                    <div class="header-logo d-flex align-items-center justify-content-center me-3">
+                        <i class="fas fa-sync-alt" style="color: #2b4d8c; font-size: 1.8rem;"></i>
+                    </div>
+                    <div>
+                        <h1 class="h4 mb-0">RIPS JSON 2275 — Módulo de depuración y cumplimiento normativo</h1>
+                        <p class="small mb-0">Sistema para la corrección, validación y ajuste de datos RIPS en formato JSON conforme a la Resolución 2275 de 2023</p>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <p class="small mb-0"><i class="fas fa-user-circle me-2"></i>Usuario: <span id="currentUser">Administrador</span></p>
+                    <p class="small mb-0"><i class="fas fa-calendar-alt me-2"></i><span id="currentDate"></span></p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="container-fluid py-4">
+        <div class="row">
+            <div class="col-lg-3">
+                <!-- Menú Lateral -->
+                <div class="card sidebar-menu shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="fas fa-bars me-2"></i>Menú</h5>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        <a href="#" class="list-group-item list-group-item-action active" id="dashboardLink">
+                            <i class="fas fa-home me-2"></i>Dashboard
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" id="transformLink">
+                            <i class="fas fa-sync-alt me-2"></i>Validar y corregir JSON
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" id="batchProcessingLink">
+                            <i class="fas fa-cogs me-2"></i>Procesamiento por lotes
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-file-excel me-2"></i>Importar desde Excel
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-object-group me-2"></i>Fusionar JSON
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-file-export me-2"></i>Exportar a Excel
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-history me-2"></i>Historial
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-cog me-2"></i>Configuración
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Estadísticas -->
+                <div class="card shadow-sm mt-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Procesos de datos</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="stats-card">
+                            <i class="fas fa-exchange-alt"></i>
+                            <h3 id="transformCount">0</h3>
+                            <p>Correcciones y validaciones aplicadas</p>
+                        </div>
+                        <div class="stats-card">
+                            <i class="fas fa-file-code"></i>
+                            <h3 id="fileCount">0</h3>
+                            <p>Archivos procesados</p>
+                        </div>
+                        <div class="stats-card">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h3 id="errorCount">0</h3>
+                            <p>Errores encontrados</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Reglas Aplicadas -->
+                <div class="card shadow-sm mt-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="fas fa-list-check me-2"></i>Reglas activas</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Limpieza de numAutorizacion</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Actualización causaMotivoAtencion</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Normalización nomTecnologiaSalud</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Validación de documentos</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Transformación documentos PT</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Actualización procedimientos</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Validación tipo de usuario</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Transformación hospitalización/urgencias</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Validación codDiagnosticoPrincipal</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-9">
+                <!-- Sección Dashboard -->
+                <div id="dashboardSection">
+                    <div class="feature-highlight">
+                        <div class="feature-title">
+                            <i class="fas fa-rocket"></i>
+                            RIPS JSON 2275 avanzado
+                        </div>
+                        <p>Corrija, valide y optimice sus archivos RIPS JSON con nuestro sistema especializado</p>
+                        <ul class="feature-list">
+                            <li>Procesamiento masivo de archivos JSON, PDF y XML</li>
+                            <li>Validación de datos con más de 15 reglas predefinidas</li>
+                            <li>Correcciones avanzadas con detección de errores</li>
+                            <li>Exportación de resultados en múltiples formatos</li>
+                            <li>Análisis de calidad de datos y estadísticas</li>
+                            <li>Procesamiento por lotes con programación</li>
+                        </ul>
+                        <div class="d-flex justify-content-center gap-3 mt-4">
+                            <button class="feature-button" id="startTransformBtn">
+                                <i class="fas fa-play-circle me-2"></i>Iniciar validación y correciones
+                            </button>
+                            <button class="feature-button" id="startBatchBtn" style="background: linear-gradient(135deg, #28a745, #20c997);">
+                                <i class="fas fa-cogs me-2"></i>Procesamiento por lotes
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-header">
+                        <h3 class="dashboard-header-title">Dashboard de procesamiento RIPS JSON</h3>
+                        <div class="dashboard-header-actions">
+                            <button class="btn btn-sm btn-outline-primary" id="refreshStatsBtn">
+                                <i class="fas fa-sync-alt me-1"></i>Actualizar
+                            </button>
+                            <button class="btn btn-sm btn-primary" id="newProcessBtn">
+                                <i class="fas fa-plus me-1"></i>Nuevo proceso
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="quick-stats">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-file-import"></i>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-title">Archivos cargados</div>
+                                <div class="stat-value" id="dashboardFileCount">0</div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-title">Correcciones exitosas</div>
+                                <div class="stat-value" id="dashboardTransformCount">0</div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-title">Errores detectados</div>
+                                <div class="stat-value" id="dashboardErrorCount">0</div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-title">Tiempo promedio</div>
+                                <div class="stat-value" id="dashboardAvgTime">0s</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="recent-files">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="section-title mb-0"><i class="fas fa-history me-2"></i>Archivos recientes</h5>
+                                    <div class="search-box" style="width: 60%;">
+                                        <input type="text" class="form-control form-control-sm" placeholder="Buscar archivos...">
+                                        <i class="fas fa-search"></i>
+                                    </div>
+                                </div>
+                                <div id="recentFilesList">
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                                        <p>No hay archivos recientes</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="transform-history">
+                                <h5 class="section-title"><i class="fas fa-list-check me-2"></i>Historial de correcciones</h5>
+                                <div id="historyList">
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                                        <p>No se han hecho correcciones</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Estadísticas de procesamiento</h5>
+                                    <div class="tabs-container">
+                                        <ul class="nav nav-tabs" id="analyticsTabs">
+                                            <li class="nav-item">
+                                                <a class="nav-link active" data-bs-toggle="tab" href="#fileTypes">Tipos de archivo</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" data-bs-toggle="tab" href="#processingStats">Procesamiento</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" data-bs-toggle="tab" href="#performance">Rendimiento</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="tab-content">
+                                        <div class="tab-pane fade show active" id="fileTypes">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="dashboard-card">
+                                                        <div class="dashboard-title">
+                                                            <i class="fas fa-file"></i> Tipos de Archivos
+                                                        </div>
+                                                        <div class="d-flex justify-content-around mb-3">
+                                                            <div class="text-center">
+                                                                <div class="file-type-indicator json-file"></div>
+                                                                <span>JSON</span>
+                                                                <div id="jsonPercent">0%</div>
+                                                            </div>
+                                                            <div class="text-center">
+                                                                <div class="file-type-indicator pdf-file"></div>
+                                                                <span>PDF</span>
+                                                                <div id="pdfPercent">0%</div>
+                                                            </div>
+                                                            <div class="text-center">
+                                                                <div class="file-type-indicator xml-file"></div>
+                                                                <span>XML</span>
+                                                                <div id="xmlPercent">0%</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="col-md-8">
+                                                    <div class="analytics-chart">
+                                                        <div class="dashboard-title">
+                                                            <i class="fas fa-chart-pie me-2"></i>Distribución de tipos de archivo
+                                                        </div>
+                                                        <div class="chart-placeholder">
+                                                            <i class="fas fa-chart-pie fa-3x me-3"></i>
+                                                            <span>Gráfico de distribución de tipos de archivo</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="tab-pane fade" id="processingStats">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="dashboard-card">
+                                                        <div class="dashboard-title">
+                                                            <i class="fas fa-tasks"></i> Procesamiento
+                                                        </div>
+                                                        <div class="d-flex justify-content-around mb-3">
+                                                            <div class="text-center">
+                                                                <i class="fas fa-check-circle text-success mb-2"></i>
+                                                                <div>Éxito</div>
+                                                                <div id="successPercent">0%</div>
+                                                            </div>
+                                                            <div class="text-center">
+                                                                <i class="fas fa-exclamation-triangle text-warning mb-2"></i>
+                                                                <div>Advertencias</div>
+                                                                <div id="warningPercent">0%</div>
+                                                            </div>
+                                                            <div class="text-center">
+                                                                <i class="fas fa-times-circle text-danger mb-2"></i>
+                                                                <div>Errores</div>
+                                                                <div id="errorPercent">0%</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="col-md-8">
+                                                    <div class="analytics-chart">
+                                                        <div class="dashboard-title">
+                                                            <i class="fas fa-chart-line me-2"></i>Evolución de procesamiento
+                                                        </div>
+                                                        <div class="chart-placeholder">
+                                                            <i class="fas fa-chart-line fa-3x me-3"></i>
+                                                            <span>Gráfico de evolución de procesamiento</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="tab-pane fade" id="performance">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="dashboard-card">
+                                                        <div class="dashboard-title">
+                                                            <i class="fas fa-bolt"></i> Rendimiento
+                                                        </div>
+                                                        <div class="dashboard-value" id="avgTime">0s</div>
+                                                        <div class="dashboard-footer">Tiempo promedio por archivo</div>
+                                                    </div>
+                                                    <div class="dashboard-card mt-4">
+                                                        <div class="dashboard-title">
+                                                            <i class="fas fa-memory"></i> Uso de memoria
+                                                        </div>
+                                                        <div class="dashboard-value" id="memoryUsage">0 MB</div>
+                                                        <div class="dashboard-footer">Memoria utilizada</div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="col-md-8">
+                                                    <div class="analytics-chart">
+                                                        <div class="dashboard-title">
+                                                            <i class="fas fa-tachometer-alt me-2"></i>Métricas de rendimiento
+                                                        </div>
+                                                        <div class="chart-placeholder">
+                                                            <i class="fas fa-tachometer-alt fa-3x me-3"></i>
+                                                            <span>Gráfico de métricas de rendimiento</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sección Transformación JSON -->
+                <div id="jsonTransformSection" class="hidden">
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-light">
+                            <h2 class="h5 mb-0"><i class="fas fa-sync-alt me-2"></i>Corregir y validar archivos JSON</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="performance-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <div>
+                                    <strong>Procesos activos:</strong> 
+                                    Se aplicarán todas las reglas de validación solicitadas con detección de errores.
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-4 mb-3">
+                                    <div class="stats-card">
+                                        <i class="fas fa-file-import"></i>
+                                        <h3>Cargar</h3>
+                                        <p>Seleccione archivos o carpetas</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="stats-card">
+                                        <i class="fas fa-cogs"></i>
+                                        <h3>Corregir y validar</h3>
+                                        <p>Aplicar reglas para corrección y validación de datos</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="stats-card">
+                                        <i class="fas fa-file-download"></i>
+                                        <h3>Descargar</h3>
+                                        <p>Obtener archivos modificados</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Área de carga de archivos -->
+                            <div class="card mb-4">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0"><i class="fas fa-file-upload me-2"></i>Cargar archivos</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <div class="upload-area" id="jsonDropZone" role="button" tabindex="0" aria-label="Arrastre y suelte archivos JSON, PDF o XML o haga clic para seleccionar">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                            <p>Arrastra y suelta tus archivos JSON, PDF o XML aquí</p>
+                                            <p class="small text-muted">o haz clic para seleccionar</p>
+                                            <input type="file" id="jsonFileInput" webkitdirectory directory multiple accept=".json,.pdf,.xml" class="d-none" aria-label="Seleccionar archivos">
+                                        </div>
+                                        <div class="form-check mt-3">
+                                            <input class="form-check-input" type="checkbox" id="processSubfolders" checked aria-label="Procesar subcarpetas recursivamente">
+                                            <label class="form-check-label" for="processSubfolders">
+                                                Procesar subcarpetas recursivamente
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="fileListContainer">
+                                        <h5 class="section-title">Archivos seleccionados</h5>
+                                        <div id="folderStructure" class="folder-structure mb-3"></div>
+                                        <div id="fileList" class="mb-3"></div>
+                                        <div id="fileEditor" class="file-editor hidden">
+                                            <div class="file-path" id="currentFilePath"></div>
+                                            <textarea id="fileContentEditor" class="form-control"></textarea>
+                                            <div class="file-editor-actions">
+                                                <button class="btn btn-secondary" id="cancelEditBtn">Cancelar</button>
+                                                <button class="btn btn-primary" id="saveFileBtn">Guardar Cambios</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Opciones avanzadas -->
+                            <div class="advanced-options">
+                                <h5 class="section-title"><i class="fas fa-cogs me-2"></i>Opciones avanzadas</h5>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="enableBackup" checked>
+                                            <label class="form-check-label" for="enableBackup">
+                                                Crear copia de seguridad
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="enableCompression" checked>
+                                            <label class="form-check-label" for="enableCompression">
+                                                Comprimir archivos de salida
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="enableLogging" checked>
+                                            <label class="form-check-label" for="enableLogging">
+                                                Generar registro de actividad
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Reglas de transformación -->
+                            <div class="transform-options">
+                                <h5 class="section-title">Reglas de corrección y validación</h5>
+                                
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-file-invoice me-2"></i>Limpieza de numAutorizacion</h5>
+                                    <div class="transform-description">
+                                        Eliminar comillas dobles innecesarias y espacios en el campo numAutorizacion
+                                    </div>
+                                    <div class="transform-example">
+                                        <div>"numAutorizacion": <span class="text-danger">"\"xxxxxxxxxx\""</span> → <span class="text-success">"xxxxxxxxxx"</span></div>
+                                        <div>"numAutorizacion": <span class="text-danger">" xxxxxxxxxxx "</span> → <span class="text-success">"xxxxxxxxxxx"</span></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-file-medical me-2"></i>Actualización causaMotivoAtencion</h5>
+                                    <div class="transform-description">
+                                        Cambiar valor de causaMotivoAtencion de "13" o "21" a "38"
+                                    </div>
+                                    <div class="transform-example">
+                                        <div>"causaMotivoAtencion": <span class="text-danger">"13"</span> → <span class="text-success">"38"</span></div>
+                                        <div>"causaMotivoAtencion": <span class="text-danger">"21"</span> → <span class="text-success">"38"</span></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-pills me-2"></i>Normalización nomTecnologiaSalud</h5>
+                                    <div class="transform-description">
+                                        Estandarización de nombres en el campo nomTecnologiaSalud
+                                    </div>
+                                    
+                                    <table class="replacement-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Original</th>
+                                                <th>Transformado</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>DEXAMETASONA FOSFATO 4 MGML</td>
+                                                <td>DEXAMETASONA FOSFATO 4MGML</td>
+                                            </tr>
+                                            <tr>
+                                                <td>METOCLOPRAMIDA10 MG2 ML SLN IN</td>
+                                                <td>METOCLOPRAMIDA 10 MG 2ML</td>
+                                            </tr>
+                                            <tr>
+                                                <td>SODIO CLORURO 0.9 solucin inye</td>
+                                                <td>SODIO CLORURO 0.9 SOLUCION</td>
+                                            </tr>
+                                            <tr>
+                                                <td>DICLOFENACO SDICO 75 MG3 ML SO</td>
+                                                <td>DICLOFENACO SDICO 75MG 3ML</td>
+                                            </tr>
+                                            <tr>
+                                                <td>MEROPENEM 1 G POLVO PARA INYEC</td>
+                                                <td>MEROPENEM 1 G POLVO</td>
+                                            </tr>
+                                            <tr>
+                                                <td>HIOSCINA NBUTIL BROMURO20 MGML</td>
+                                                <td>HIOSCINA NBUTILBROMURO 20MGML</td>
+                                            </tr>
+                                            <tr>
+                                                <td>DEXAMETASONA (ACETATO) 8 MGML</td>
+                                                <td>DEXAMETASONA ACETATO 8 MGML</td>
+                                            </tr>
+                                            <tr>
+                                                <td>CLARITROMICINA 500 MG ( IV) PO</td>
+                                                <td>CLARITROMICINA 500 MG</td>
+                                            </tr>
+                                            <tr>
+                                                <td>ACETAMINOFEN 150 MG5 ML (3) JA</td>
+                                                <td>ACETAMINOFEN 150 MG 5ML JA</td>
+                                            </tr>
+                                            <tr>
+                                                <td>FITOMENADIONA (VITAMINA K1) 10</td>
+                                                <td>FITOMENADIONA VITAMINA K1</td>
+                                            </tr>
+                                            <tr>
+                                                <td>GENTAMICINA (SULFATO) 0,3 UNGE</td>
+                                                <td>GENTAMICINA SULFATO 0,3 UNGE</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-exclamation-circle me-2"></i>Validación de Documentos</h5>
+                                    <div class="transform-description">
+                                        Detectar y reportar errores en datos faltantes o inválidos
+                                    </div>
+                                    <div class="transform-example">
+                                        <div>"tipoDocumentoIdentificacion": <span class="text-danger">null</span> → <span class="text-danger">ERROR</span></div>
+                                        <div>"numAutorizacion": <span class="text-danger">null</span> → <span class="text-danger">ERROR</span></div>
+                                        <div>"numAutorizacion": <span class="text-danger">""</span> → <span class="text-danger">ERROR</span></div>
+                                        <div>"codDiagnosticoPrincipal": <span class="text-danger">""</span> → <span class="text-danger">ERROR</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-id-card me-2"></i>Ajustar documentos PT</h5>
+                                    <div class="transform-description">
+                                        Cambiar codPaisOrigen de "170" a "862" cuando tipoDocumentoIdentificacion es "PT"
+                                    </div>
+                                    <div class="transform-example">
+                                        <div>"tipoDocumentoIdentificacion": <span class="text-danger">"PT"</span> y "codPaisOrigen": <span class="text-danger">"170"</span> → <span class="text-success">"codPaisOrigen": "862"</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-procedures me-2"></i>Actualización procedimientos</h5>
+                                    <div class="transform-description">
+                                        Cambiar valores en procedimientos según reglas específicas
+                                    </div>
+                                    <div class="transform-example">
+                                        <div>"finalidadTecnologiaSalud": <span class="text-danger">"44" o "16"</span> → <span class="text-success">"15"</span></div>
+                                        <div>"viaIngresoServicioSalud": <span class="text-danger">"02"</span> → <span class="text-success">"03"</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-user-check me-2"></i>Validación tipo de usuario</h5>
+                                    <div class="transform-description">
+                                        Validar que el tipo de usuario corresponda con el régimen
+                                    </div>
+                                    <div class="transform-example">
+                                        <div>Régimen subsidiado: <span class="text-danger">"tipoUsuario": "01"</span> → <span class="text-danger">ERROR (debe ser "04")</span></div>
+                                        <div>Régimen contributivo: <span class="text-danger">"tipoUsuario": "04"</span> → <span class="text-danger">ERROR (debe ser "01" o "02")</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-hospital me-2"></i>Validación hospitalización y urgencias</h5>
+                                    <div class="transform-description">
+                                        <p>Tomar <code>fechaInicioAtencion</code> de hospitalización y asignarla a <code>fechaEgreso</code> en urgencias</p>
+                                    </div>
+                                    <div class="transform-example">
+                                        <div>"fechaEgreso" (en urgencias): <span class="text-danger">"2025-04-19 12:13"</span> → <span class="text-success">"2025-04-17 16:20"</span> (valor de hospitalización)</div>
+                                    </div>
+                                </div>
+
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-stethoscope me-2"></i>Validación codDiagnosticoPrincipal</h5>
+                                    <div class="transform-description">
+                                        Reportar error cuando codDiagnosticoPrincipal esté vacío
+                                    </div>
+                                    <div class="transform-example">
+                                        <div>"codDiagnosticoPrincipal": <span class="text-danger">""</span> → <span class="text-danger">ERROR</span></div>
+                                        <div>"codDiagnosticoPrincipal": <span class="text-danger">null</span> → <span class="text-danger">ERROR</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="text-center mt-4">
+                                    <button id="transformJsonBtn" class="btn btn-transform" aria-label="Aplicar transformaciones a los archivos seleccionados">
+                                        <i class="fas fa-sync-alt me-2"></i>Procesar datos
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Sección de procesamiento -->
+                            <div id="processingSection" style="display: none;">
+                                <div class="card mb-4">
+                                    <div class="card-header bg-info text-white">
+                                        <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Transformando Archivos</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="progress-container">
+                                            <div class="progress-bar">
+                                                <div class="progress-fill" id="progressFill" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                            <div class="text-end mt-1">
+                                                <span id="progressText">0%</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-3">
+                                            <div class="current-file">
+                                                <i class="fas fa-file-alt me-2"></i>
+                                                <span id="currentFileName">Cargando...</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="validation-results mt-4" id="validationResults">
+                                            <!-- Aquí se mostrarán los resultados de validación -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Resultados de transformación -->
+                            <div id="transformResults" style="display: none;">
+                                <div class="transform-summary">
+                                    <h5 class="section-title"><i class="fas fa-clipboard-list me-2"></i>Detalle de conversión RIPS</h5>
+                                    <div id="transformationsList"></div>
+                                </div>
+                                
+                                <div class="card mb-4">
+                                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><i class="fas fa-file-code me-2"></i>Vista Previa JSON Transformado</h5>
+                                        <div>
+                                            <button id="downloadAllBtn" class="btn btn-light btn-sm me-2" aria-label="Descargar todos los archivos transformados">
+                                                <i class="fas fa-download me-1"></i>Descargar Todos
+                                            </button>
+                                            <button id="downloadSelectedBtn" class="btn btn-outline-light btn-sm" aria-label="Descargar archivo seleccionado">
+                                                <i class="fas fa-file-download me-1"></i>Descargar Selección
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <select id="fileSelector" class="form-select" aria-label="Seleccionar archivo para previsualizar">
+                                                <option value="">Seleccione un archivo para previsualizar</option>
+                                            </select>
+                                        </div>
+                                        <pre id="jsonPreview" class="json-viewer"></pre>
+                                    </div>
+                                </div>
+                                
+                                <div id="errorDetailsSection" class="mt-4">
+                                    <!-- Sección de detalles de errores -->
+                                </div>
+                                
+                                <div class="mt-3 text-end">
+                                    <button id="resetProcessBtn" class="btn btn-outline-secondary" aria-label="Reiniciar proceso de transformación">
+                                        <i class="fas fa-redo me-2"></i>Nuevo Proceso
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sección Procesamiento por Lotes -->
+                <div id="batchProcessingSection" class="hidden">
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-light">
+                            <h2 class="h5 mb-0"><i class="fas fa-cogs me-2"></i>Procesamiento por lotes</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="performance-warning">
+                                <i class="fas fa-info-circle"></i>
+                                <div>
+                                    <strong>Procesamiento programado:</strong> 
+                                    Configure tareas de procesamiento recurrentes para ejecutarse automáticamente.
+                                </div>
+                            </div>
+                            
+                            <div class="batch-processing">
+                                <div class="batch-card">
+                                    <div class="batch-icon">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <div class="batch-title">Programar tarea</div>
+                                    <div class="batch-description">Configure una tarea recurrente para procesamiento automático</div>
+                                    <button class="btn btn-primary btn-sm" id="scheduleTaskBtn">Configurar</button>
+                                </div>
+                                
+                                <div class="batch-card">
+                                    <div class="batch-icon">
+                                        <i class="fas fa-folder-open"></i>
+                                    </div>
+                                    <div class="batch-title">Monitorear carpeta</div>
+                                    <div class="batch-description">Procese automáticamente archivos en una carpeta específica</div>
+                                    <button class="btn btn-primary btn-sm" id="monitorFolderBtn">Seleccionar</button>
+                                </div>
+                                
+                                <div class="batch-card">
+                                    <div class="batch-icon">
+                                        <i class="fas fa-server"></i>
+                                    </div>
+                                    <div class="batch-title">Procesamiento en servidor</div>
+                                    <div class="batch-description">Ejecute tareas pesadas en un servidor remoto</div>
+                                    <button class="btn btn-primary btn-sm" id="serverProcessingBtn">Conectar</button>
+                                </div>
+                                
+                                <div class="batch-card">
+                                    <div class="batch-icon">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <div class="batch-title">Análisis de rendimiento</div>
+                                    <div class="batch-description">Optimice el rendimiento de sus procesos por lotes</div>
+                                    <button class="btn btn-primary btn-sm" id="performanceAnalysisBtn">Analizar</button>
+                                </div>
+                            </div>
+                            
+                            <!-- Formulario de programación de tareas (oculto inicialmente) -->
+                            <div id="scheduleForm" class="schedule-form hidden mt-4">
+                                <h5 class="section-title"><i class="fas fa-clock me-2"></i>Programar tarea de procesamiento</h5>
+                                
+                                <div class="form-section">
+                                    <h6 class="form-section-title">Configuración básica</h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="taskName" class="form-label">Nombre de la tarea</label>
+                                                <input type="text" class="form-control" id="taskName" placeholder="Ej: Procesamiento diario RIPS">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="taskDescription" class="form-label">Descripción</label>
+                                                <textarea class="form-control" id="taskDescription" rows="2" placeholder="Descripción de la tarea programada"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-section">
+                                    <h6 class="form-section-title">Programación</h6>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="scheduleType" class="form-label">Frecuencia</label>
+                                                <select class="form-select" id="scheduleType">
+                                                    <option value="daily">Diario</option>
+                                                    <option value="weekly">Semanal</option>
+                                                    <option value="monthly">Mensual</option>
+                                                    <option value="custom">Personalizado</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="scheduleTime" class="form-label">Hora de ejecución</label>
+                                                <input type="time" class="form-control" id="scheduleTime" value="02:00">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="scheduleDays" class="form-label">Días de la semana</label>
+                                                <select class="form-select" id="scheduleDays" multiple>
+                                                    <option value="0" selected>Domingo</option>
+                                                    <option value="1" selected>Lunes</option>
+                                                    <option value="2" selected>Martes</option>
+                                                    <option value="3" selected>Miércoles</option>
+                                                    <option value="4" selected>Jueves</option>
+                                                    <option value="5" selected>Viernes</option>
+                                                    <option value="6" selected>Sábado</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-section">
+                                    <h6 class="form-section-title">Configuración de procesamiento</h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="inputFolder" class="form-label">Carpeta de entrada</label>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" id="inputFolder" placeholder="Ruta de la carpeta de entrada">
+                                                    <button class="btn btn-outline-secondary" type="button" id="browseInputBtn">Examinar</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="outputFolder" class="form-label">Carpeta de salida</label>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" id="outputFolder" placeholder="Ruta de la carpeta de salida">
+                                                    <button class="btn btn-outline-secondary" type="button" id="browseOutputBtn">Examinar</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="deleteAfterProcess" checked>
+                                        <label class="form-check-label" for="deleteAfterProcess">
+                                            Eliminar archivos originales después del procesamiento
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="button" class="btn btn-secondary" id="cancelScheduleBtn">Cancelar</button>
+                                    <button type="button" class="btn btn-primary" id="saveScheduleBtn">Guardar programación</button>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <h5 class="section-title"><i class="fas fa-list-check me-2"></i>Tareas programadas</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Nombre</th>
+                                                <th>Frecuencia</th>
+                                                <th>Última ejecución</th>
+                                                <th>Próxima ejecución</th>
+                                                <th>Estado</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="scheduledTasksTable">
+                                            <tr>
+                                                <td>Procesamiento diario RIPS</td>
+                                                <td>Diario</td>
+                                                <td>2025-04-20 02:00</td>
+                                                <td>2025-04-21 02:00</td>
+                                                <td><span class="status-indicator status-active"></span> Activo</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-play"></i></button>
+                                                    <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></button>
+                                                    <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Validación semanal</td>
+                                                <td>Semanal</td>
+                                                <td>2025-04-15 03:00</td>
+                                                <td>2025-04-22 03:00</td>
+                                                <td><span class="status-indicator status-inactive"></span> Inactivo</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary"><i class="fas fa-play"></i></button>
+                                                    <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></button>
+                                                    <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Pie de Página -->
+    <footer class="mt-5">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5 class="text-uppercase">Cumplimiento normativo-RIPS JSON 2275</h5>
+                    <p>Herramienta para corregir y validar datos RIPS en formato JSON según la resolución 2275/2023.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="text-uppercase">Contacto</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> soporte@ripsjson.com</li>
+                        <li><i class="fas fa-phone me-2"></i> +57 3153478426</li>
+                        <li><i class="fas fa-map-marker-alt me-2"></i> Riohacha, Colombia</li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="text-uppercase">Legal</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-reset">Términos y condiciones</a></li>
+                        <li><a href="#" class="text-reset">Política de privacidad</a></li>
+                        <li><a href="#" class="text-reset">Soporte técnico</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="text-center">
+                <p class="mb-0">&copy; 2025 Herramienta de corrección y validación de RIPS JSON 2275. Todos los derechos reservados por D&D.</p>
+            </div>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="js/funciones.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Mostrar fecha actual en el encabezado
+            document.getElementById('currentDate').textContent = new Date().toLocaleDateString('es-CO', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            // Referencias a elementos principales
+            const dashboardSection = document.getElementById('dashboardSection');
+            const jsonTransformSection = document.getElementById('jsonTransformSection');
+            const batchProcessingSection = document.getElementById('batchProcessingSection');
+            const dashboardLink = document.getElementById('dashboardLink');
+            const transformLink = document.getElementById('transformLink');
+            const batchProcessingLink = document.getElementById('batchProcessingLink');
+            const startTransformBtn = document.getElementById('startTransformBtn');
+            const startBatchBtn = document.getElementById('startBatchBtn');
+
+            // Referencias para el módulo de procesamiento por lotes
+            const scheduleTaskBtn = document.getElementById('scheduleTaskBtn');
+            const monitorFolderBtn = document.getElementById('monitorFolderBtn');
+            const serverProcessingBtn = document.getElementById('serverProcessingBtn');
+            const performanceAnalysisBtn = document.getElementById('performanceAnalysisBtn');
+            const scheduleForm = document.getElementById('scheduleForm');
+            const cancelScheduleBtn = document.getElementById('cancelScheduleBtn');
+            const saveScheduleBtn = document.getElementById('saveScheduleBtn');
+            const browseInputBtn = document.getElementById('browseInputBtn');
+            const browseOutputBtn = document.getElementById('browseOutputBtn');
+
+            // Inicializar navegación
+            dashboardLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                showSection('dashboard');
+            });
+
+            transformLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                showSection('transform');
+            });
+
+            batchProcessingLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                showSection('batch');
+            });
+
+            startTransformBtn.addEventListener('click', function() {
+                showSection('transform');
+            });
+
+            startBatchBtn.addEventListener('click', function() {
+                showSection('batch');
+            });
+
+            function showSection(section) {
+                // Ocultar todas las secciones
+                dashboardSection.classList.add('hidden');
+                jsonTransformSection.classList.add('hidden');
+                batchProcessingSection.classList.add('hidden');
+                
+                // Remover clase active de todos los enlaces
+                dashboardLink.classList.remove('active');
+                transformLink.classList.remove('active');
+                batchProcessingLink.classList.remove('active');
+                
+                // Mostrar sección seleccionada y activar enlace
+                switch(section) {
+                    case 'dashboard':
+                        dashboardSection.classList.remove('hidden');
+                        dashboardLink.classList.add('active');
+                        break;
+                    case 'transform':
+                        jsonTransformSection.classList.remove('hidden');
+                        transformLink.classList.add('active');
+                        break;
+                    case 'batch':
+                        batchProcessingSection.classList.remove('hidden');
+                        batchProcessingLink.classList.add('active');
+                        break;
+                }
+            }
+
+            // Funcionalidades del módulo de procesamiento por lotes
+            scheduleTaskBtn.addEventListener('click', function() {
+                scheduleForm.classList.remove('hidden');
+                scheduleTaskBtn.disabled = true;
+            });
+
+            cancelScheduleBtn.addEventListener('click', function() {
+                scheduleForm.classList.add('hidden');
+                scheduleTaskBtn.disabled = false;
+            });
+
+            saveScheduleBtn.addEventListener('click', function() {
+                const taskName = document.getElementById('taskName').value;
+                const scheduleType = document.getElementById('scheduleType').value;
+                const scheduleTime = document.getElementById('scheduleTime').value;
+                const inputFolder = document.getElementById('inputFolder').value;
+                const outputFolder = document.getElementById('outputFolder').value;
+                
+                if (!taskName || !inputFolder || !outputFolder) {
+                    alert('Por favor complete todos los campos obligatorios');
+                    return;
+                }
+                
+                // Aquí iría la lógica para guardar la programación
+                alert(`Tarea "${taskName}" programada correctamente para ejecutarse ${scheduleType} a las ${scheduleTime}`);
+                
+                // Ocultar formulario y restablecer
+                scheduleForm.classList.add('hidden');
+                scheduleTaskBtn.disabled = false;
+                
+                // Limpiar formulario
+                document.getElementById('taskName').value = '';
+                document.getElementById('taskDescription').value = '';
+                document.getElementById('inputFolder').value = '';
+                document.getElementById('outputFolder').value = '';
+            });
+
+            browseInputBtn.addEventListener('click', function() {
+                // En una aplicación real, aquí se abriría un diálogo para seleccionar carpeta
+                // Por ahora, simulamos la selección
+                document.getElementById('inputFolder').value = 'C:/RIPS/Entrada';
+            });
+
+            browseOutputBtn.addEventListener('click', function() {
+                // En una aplicación real, aquí se abriría un diálogo para seleccionar carpeta
+                // Por ahora, simulamos la selección
+                document.getElementById('outputFolder').value = 'C:/RIPS/Salida';
+            });
+
+            monitorFolderBtn.addEventListener('click', function() {
+                alert('Funcionalidad de monitoreo de carpeta activada. El sistema procesará automáticamente los archivos nuevos en la carpeta seleccionada.');
+            });
+
+            serverProcessingBtn.addEventListener('click', function() {
+                alert('Conexión con servidor remoto establecida. Las tareas pesadas se ejecutarán en el servidor.');
+            });
+
+            performanceAnalysisBtn.addEventListener('click', function() {
+                alert('Análisis de rendimiento iniciado. Se generará un reporte con recomendaciones de optimización.');
+            });
+
+            // Funcionalidad para las acciones de las tareas programadas
+            document.querySelectorAll('#scheduledTasksTable button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const action = this.querySelector('i').className;
+                    const taskName = this.closest('tr').querySelector('td:first-child').textContent;
+                    
+                    if (action.includes('fa-play')) {
+                        alert(`Iniciando tarea: ${taskName}`);
+                    } else if (action.includes('fa-edit')) {
+                        alert(`Editando tarea: ${taskName}`);
+                        // Aquí se mostraría el formulario de edición
+                    } else if (action.includes('fa-trash')) {
+                        if (confirm(`¿Está seguro de que desea eliminar la tarea "${taskName}"?`)) {
+                            alert(`Tarea "${taskName}" eliminada correctamente`);
+                            // Aquí se eliminaría la tarea de la lista
+                        }
+                    }
+                });
+            });
+
+            // Inicializar con la sección dashboard visible
+            showSection('dashboard');
+        });
+    </script>
+</body>
+</html>

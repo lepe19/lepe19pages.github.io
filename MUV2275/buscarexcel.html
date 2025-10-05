@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador de Coincidencias Excel - Mejorado</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background: linear-gradient(90deg, #2c3e50 0%, #4a6491 100%);
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-icon {
+            font-size: 2.5rem;
+            color: #4CAF50;
+        }
+        
+        .logo-text h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .logo-text p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 25px;
+        }
+        
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        
+        nav a:hover {
+            color: #4CAF50;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 30px auto;
+            flex: 1;
+            padding: 0 20px;
+        }
+        
+        .main-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .page-title {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, #4CAF50, #2c3e50);
+            border-radius: 2px;
+        }
+        
+        .upload-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 2px dashed #c3cfe2;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            transition: all 0.3s;
+        }
+        
+        .upload-section:hover {
+            border-color: #4CAF50;
+            background-color: #f0f7f0;
+        }
+        
+        .upload-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .upload-section h3::before {
+            content: '📁';
+            font-size: 1.2rem;
+        }
+        
+        .file-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .file-info {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #4a6491;
+            font-weight: 500;
+        }
+        
+        /* Nuevos estilos para mejoras */
+        .drag-drop-area {
+            border: 2px dashed #4CAF50;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .drag-drop-area:hover, .drag-drop-area.dragover {
+            background-color: #f0f7f0;
+            border-color: #2E7D32;
+        }
+        
+        .drag-drop-area p {
+            margin-bottom: 10px;
+            color: #4a6491;
+        }
+        
+        .drag-drop-area .icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #4CAF50;
+        }
+        
+        .config-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        
+        .config-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .config-section h3::before {
+            content: '⚙️';
+            font-size: 1.2rem;
+        }
+        
+        .config-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .config-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .config-group label {
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        
+        .config-group input, .config-group select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .checkbox-group input {
+            width: auto;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            margin: 10px 0;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50 0%, #2E7D32 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .progress-text {
+            text-align: center;
+            font-size: 14px;
+            color: #4a6491;
+        }
+        
+        .file-preview {
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 10px;
+            background-color: white;
+            display: none;
+        }
+        
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        
+        .preview-table th, .preview-table td {
+            border: 1px solid #e0e0e0;
+            padding: 6px;
+            text-align: left;
+        }
+        
+        .preview-table th {
+            background-color: #f5f5f5;
+            font-weight: 600;
+        }
+        
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .stat-card h4 {
+            font-size: 14px;
+            color: #4a6491;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card p {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
+        .filter-section {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-section input, .filter-section select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-width: 150px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        button {
+            background: linear-gradient(90deg, #4CAF50 0%, #2E7D32 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(76, 175, 80, 0.3);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(76, 175, 80, 0.4);
+        }
+        
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(90deg, #607d8b 0%, #37474f 100%);
+            box-shadow: 0 4px 6px rgba(96, 125, 139, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            box-shadow: 0 6px 8px rgba(96, 125, 139, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(90deg, #f44336 0%, #c62828 100%);
+            box-shadow: 0 4px 6px rgba(244, 67, 54, 0.3);
+        }
+        
+        .btn-danger:hover {
+            box-shadow: 0 6px 8px rgba(244, 67, 54, 0.4);
+        }
+        
+        .loading {
+            text-align: center;
+            display: none;
+            padding: 30px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .results {
+            margin-top: 30px;
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .results h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        
+        .result-count {
+            background-color: #e8f5e9;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            color: #2E7D32;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background: linear-gradient(90deg, #4a6491 0%, #2c3e50 100%);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        th:hover {
+            background: linear-gradient(90deg, #5a749b 0%, #3c4e60 100%);
+        }
+        
+        th.sort-asc::after {
+            content: ' ▲';
+            font-size: 12px;
+        }
+        
+        th.sort-desc::after {
+            content: ' ▼';
+            font-size: 12px;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        tr:hover {
+            background-color: #f0f7f0;
+        }
+        
+        .status-delivered {
+            background-color: #e8f5e9;
+            color: #2E7D32;
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .status-pending {
+            background-color: #fff3e0;
+            color: #ef6c00;
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        footer {
+            background: linear-gradient(90deg, #2c3e50 0%, #1a2530 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-top: 40px;
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        
+        .footer-section {
+            flex: 1;
+            padding: 0 20px;
+        }
+        
+        .footer-section h3 {
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            color: #4CAF50;
+        }
+        
+        .footer-section p, .footer-section a {
+            color: #bdc3c7;
+            margin-bottom: 10px;
+            display: block;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-section a:hover {
+            color: #4CAF50;
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 20px;
+            margin-top: 20px;
+            border-top: 1px solid #34495e;
+            color: #95a5a6;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                gap: 30px;
+            }
+            
+            table {
+                display: block;
+                overflow-x: auto;
+            }
+            
+            .config-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .filter-section {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">📊</div>
+                <div class="logo-text">
+                    <h1>Buscador de Coincidencias</h1>
+                    <p>Herramienta profesional para análisis de datos</p>
+                </div>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#">Inicio</a></li>
+                    <li><a href="#">Funcionalidades</a></li>
+                    <li><a href="#">Documentación</a></li>
+                    <li><a href="#">Soporte</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="main-content">
+            <h2 class="page-title">Buscador de Coincidencias en Excel</h2>
+            
+            <!-- Nueva sección de configuración -->
+            <div class="config-section">
+                <h3>Configuración de Búsqueda</h3>
+                <div class="config-options">
+                    <div class="config-group">
+                        <label for="search-column">Columna a buscar (Archivo 1):</label>
+                        <input type="text" id="search-column" value="A" placeholder="Ej: A">
+                    </div>
+                    <div class="config-group">
+                        <label for="search-pattern">Patrón de búsqueda:</label>
+                        <input type="text" id="search-pattern" value="01000" placeholder="Ej: 01000">
+                    </div>
+                    <div class="config-group">
+                        <label for="match-type">Tipo de coincidencia:</label>
+                        <select id="match-type">
+                            <option value="startsWith">Comienza con</option>
+                            <option value="endsWith">Termina con</option>
+                            <option value="contains">Contiene</option>
+                            <option value="exact">Exacta</option>
+                        </select>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="case-sensitive">
+                        <label for="case-sensitive">Coincidencia sensible a mayúsculas</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="upload-section">
+                <h3>Archivo Principal (con múltiples hojas)</h3>
+                <div class="drag-drop-area" id="drop-area-1">
+                    <div class="icon">📂</div>
+                    <p>Arrastra y suelta tu archivo aquí</p>
+                    <p>o</p>
+                    <button class="btn-secondary">Seleccionar Archivo</button>
+                </div>
+                <input type="file" id="file1" accept=".xls,.xlsx,.csv" class="file-input" style="display: none;">
+                <div id="file1-info" class="file-info"></div>
+                <div class="progress-bar" id="progress-bar-1">
+                    <div class="progress-fill" id="progress-fill-1"></div>
+                </div>
+                <div class="progress-text" id="progress-text-1"></div>
+                <div id="file1-preview" class="file-preview"></div>
+            </div>
+            
+            <div class="upload-section">
+                <h3>Archivo a Comparar (con una hoja)</h3>
+                <div class="drag-drop-area" id="drop-area-2">
+                    <div class="icon">📂</div>
+                    <p>Arrastra y suelta tu archivo aquí</p>
+                    <p>o</p>
+                    <button class="btn-secondary">Seleccionar Archivo</button>
+                </div>
+                <input type="file" id="file2" accept=".xls,.xlsx,.csv" class="file-input" style="display: none;">
+                <div id="file2-info" class="file-info"></div>
+                <div class="progress-bar" id="progress-bar-2">
+                    <div class="progress-fill" id="progress-fill-2"></div>
+                </div>
+                <div class="progress-text" id="progress-text-2"></div>
+                <div id="file2-preview" class="file-preview"></div>
+            </div>
+            
+            <div class="action-buttons">
+                <button id="process-btn" disabled>Buscar Coincidencias</button>
+                <button id="reset-btn" class="btn-danger">Limpiar Todo</button>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Procesando archivos, por favor espere...</p>
+            </div>
+            
+            <div class="results" id="results">
+                <h3>Resultados de la Búsqueda</h3>
+                
+                <!-- Nueva sección de estadísticas -->
+                <div class="stats-section" id="stats-section">
+                    <!-- Se llenará dinámicamente con JavaScript -->
+                </div>
+                
+                <!-- Nueva sección de filtros -->
+                <div class="filter-section" id="filter-section">
+                    <input type="text" id="search-filter" placeholder="Buscar en resultados...">
+                    <select id="sheet-filter">
+                        <option value="">Todas las hojas</option>
+                    </select>
+                    <select id="status-filter">
+                        <option value="">Todos los estados</option>
+                        <option value="Entregada a Radicación">Entregada a Radicación</option>
+                        <option value="Pendiente">Pendiente</option>
+                    </select>
+                </div>
+                
+                <p id="result-count" class="result-count"></p>
+                <div id="result-table-container"></div>
+                
+                <div class="action-buttons">
+                    <button id="download-btn">Descargar Resultados en Excel</button>
+                    <button id="copy-btn" class="btn-secondary">Copiar Resultados</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Buscador de Coincidencias</h3>
+                <p>Una herramienta profesional para comparar y analizar datos de archivos Excel de manera eficiente.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Enlaces Rápidos</h3>
+                <a href="#">Inicio</a>
+                <a href="#">Cómo usar</a>
+                <a href="#">Preguntas Frecuentes</a>
+                <a href="#">Contacto</a>
+            </div>
+            <div class="footer-section">
+                <h3>Contacto</h3>
+                <p>Email: soporte@buscadorcoincidencias.com</p>
+                <p>Teléfono: +1 (123) 456-7890</p>
+                <p>Dirección: Calle Ficticia 123, Ciudad</p>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2023 Buscador de Coincidencias. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Variables globales
+        let file1Data = null;
+        let file2Data = null;
+        let matches = [];
+        let currentSort = { column: null, direction: 'asc' };
+        
+        // Referencias a elementos del DOM
+        const file1Input = document.getElementById('file1');
+        const file2Input = document.getElementById('file2');
+        const file1Info = document.getElementById('file1-info');
+        const file2Info = document.getElementById('file2-info');
+        const processBtn = document.getElementById('process-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const loadingDiv = document.getElementById('loading');
+        const resultsDiv = document.getElementById('results');
+        const resultCount = document.getElementById('result-count');
+        const resultTableContainer = document.getElementById('result-table-container');
+        const downloadBtn = document.getElementById('download-btn');
+        const copyBtn = document.getElementById('copy-btn');
+        const dropArea1 = document.getElementById('drop-area-1');
+        const dropArea2 = document.getElementById('drop-area-2');
+        const searchColumn = document.getElementById('search-column');
+        const searchPattern = document.getElementById('search-pattern');
+        const matchType = document.getElementById('match-type');
+        const caseSensitive = document.getElementById('case-sensitive');
+        const searchFilter = document.getElementById('search-filter');
+        const sheetFilter = document.getElementById('sheet-filter');
+        const statusFilter = document.getElementById('status-filter');
+        const statsSection = document.getElementById('stats-section');
+        const filterSection = document.getElementById('filter-section');
+        
+        // Event listeners
+        file1Input.addEventListener('change', handleFile1Upload);
+        file2Input.addEventListener('change', handleFile2Upload);
+        processBtn.addEventListener('click', processFiles);
+        resetBtn.addEventListener('click', resetAll);
+        downloadBtn.addEventListener('click', downloadResults);
+        copyBtn.addEventListener('click', copyResults);
+        
+        // Drag and drop
+        setupDragAndDrop(dropArea1, file1Input);
+        setupDragAndDrop(dropArea2, file2Input);
+        
+        // Filtros
+        searchFilter.addEventListener('input', applyFilters);
+        sheetFilter.addEventListener('change', applyFilters);
+        statusFilter.addEventListener('change', applyFilters);
+        
+        // Función para configurar drag and drop
+        function setupDragAndDrop(dropArea, fileInput) {
+            const button = dropArea.querySelector('button');
+            
+            button.addEventListener('click', () => {
+                fileInput.click();
+            });
+            
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
+            
+            function highlight() {
+                dropArea.classList.add('dragover');
+            }
+            
+            function unhighlight() {
+                dropArea.classList.remove('dragover');
+            }
+            
+            dropArea.addEventListener('drop', handleDrop, false);
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                fileInput.files = files;
+                
+                // Disparar el evento change manualmente
+                const event = new Event('change');
+                fileInput.dispatchEvent(event);
+            }
+        }
+        
+        // Función para manejar la carga del archivo 1 (con múltiples hojas)
+        function handleFile1Upload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            file1Info.textContent = `Archivo cargado: ${file.name} (Tamaño: ${(file.size/1024/1024).toFixed(2)} MB)`;
+            file1Info.style.color = '#4CAF50';
+            
+            // Mostrar barra de progreso
+            const progressBar = document.getElementById('progress-bar-1');
+            const progressFill = document.getElementById('progress-fill-1');
+            const progressText = document.getElementById('progress-text-1');
+            
+            progressBar.style.display = 'block';
+            progressFill.style.width = '0%';
+            progressText.textContent = 'Leyendo archivo...';
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    file1Data = workbook;
+                    
+                    // Actualizar progreso
+                    progressFill.style.width = '100%';
+                    progressText.textContent = 'Archivo leído correctamente';
+                    
+                    // Mostrar vista previa
+                    showFilePreview(file1Data, 'file1-preview');
+                    
+                    checkFilesReady();
+                } catch (error) {
+                    file1Info.style.color = '#e74c3c';
+                    file1Info.textContent = `Error: ${error.message}`;
+                    progressBar.style.display = 'none';
+                    alert('Error al leer el archivo 1: ' + error.message);
+                }
+            };
+            
+            reader.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    const percentLoaded = Math.round((e.loaded / e.total) * 100);
+                    progressFill.style.width = percentLoaded + '%';
+                    progressText.textContent = `Leyendo: ${percentLoaded}%`;
+                }
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+        
+        // Función para manejar la carga del archivo 2 (con una hoja)
+        function handleFile2Upload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            file2Info.textContent = `Archivo cargado: ${file.name} (Tamaño: ${(file.size/1024/1024).toFixed(2)} MB)`;
+            file2Info.style.color = '#4CAF50';
+            
+            // Mostrar barra de progreso
+            const progressBar = document.getElementById('progress-bar-2');
+            const progressFill = document.getElementById('progress-fill-2');
+            const progressText = document.getElementById('progress-text-2');
+            
+            progressBar.style.display = 'block';
+            progressFill.style.width = '0%';
+            progressText.textContent = 'Leyendo archivo...';
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    file2Data = workbook;
+                    
+                    // Actualizar progreso
+                    progressFill.style.width = '100%';
+                    progressText.textContent = 'Archivo leído correctamente';
+                    
+                    // Mostrar vista previa
+                    showFilePreview(file2Data, 'file2-preview');
+                    
+                    checkFilesReady();
+                } catch (error) {
+                    file2Info.style.color = '#e74c3c';
+                    file2Info.textContent = `Error: ${error.message}`;
+                    progressBar.style.display = 'none';
+                    alert('Error al leer el archivo 2: ' + error.message);
+                }
+            };
+            
+            reader.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    const percentLoaded = Math.round((e.loaded / e.total) * 100);
+                    progressFill.style.width = percentLoaded + '%';
+                    progressText.textContent = `Leyendo: ${percentLoaded}%`;
+                }
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+        
+        // Mostrar vista previa del archivo
+        function showFilePreview(workbook, containerId) {
+            const container = document.getElementById(containerId);
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+            
+            let previewHTML = '<p><strong>Vista previa (primeras 5 filas):</strong></p>';
+            previewHTML += '<table class="preview-table">';
+            
+            // Mostrar encabezados
+            if (jsonData.length > 0) {
+                previewHTML += '<thead><tr>';
+                jsonData[0].forEach(cell => {
+                    previewHTML += `<th>${cell}</th>`;
+                });
+                previewHTML += '</tr></thead>';
+            }
+            
+            // Mostrar primeras filas
+            previewHTML += '<tbody>';
+            for (let i = 1; i < Math.min(6, jsonData.length); i++) {
+                previewHTML += '<tr>';
+                jsonData[i].forEach(cell => {
+                    previewHTML += `<td>${cell}</td>`;
+                });
+                previewHTML += '</tr>';
+            }
+            previewHTML += '</tbody></table>';
+            
+            container.innerHTML = previewHTML;
+            container.style.display = 'block';
+        }
+        
+        // Verificar si ambos archivos están listos para procesar
+        function checkFilesReady() {
+            if (file1Data && file2Data) {
+                processBtn.disabled = false;
+            }
+        }
+        
+        // Procesar los archivos y buscar coincidencias
+        function processFiles() {
+            loadingDiv.style.display = 'block';
+            resultsDiv.style.display = 'none';
+            processBtn.disabled = true;
+            
+            // Usar setTimeout para permitir que se muestre el indicador de carga
+            setTimeout(() => {
+                try {
+                    // Obtener configuración de búsqueda
+                    const column = searchColumn.value.toUpperCase();
+                    const pattern = searchPattern.value;
+                    const matchTypeValue = matchType.value;
+                    const caseSensitiveValue = caseSensitive.checked;
+                    
+                    // Convertir letra de columna a índice (A=0, B=1, etc.)
+                    const columnIndex = column.charCodeAt(0) - 65;
+                    
+                    // Extraer todas las cuentas que coinciden con el patrón del archivo 1 (todas las hojas)
+                    const accountsFromFile1 = new Map();
+                    
+                    // Procesar cada hoja del archivo 1
+                    file1Data.SheetNames.forEach(sheetName => {
+                        const worksheet = file1Data.Sheets[sheetName];
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                        
+                        // Buscar en la columna especificada cuentas que coincidan con el patrón
+                        jsonData.forEach((row, rowIndex) => {
+                            if (row.length > columnIndex) {
+                                const account = String(row[columnIndex]);
+                                let matchesPattern = false;
+                                
+                                // Aplicar el tipo de coincidencia
+                                const accountToCheck = caseSensitiveValue ? account : account.toLowerCase();
+                                const patternToCheck = caseSensitiveValue ? pattern : pattern.toLowerCase();
+                                
+                                switch(matchTypeValue) {
+                                    case 'startsWith':
+                                        matchesPattern = accountToCheck.startsWith(patternToCheck);
+                                        break;
+                                    case 'endsWith':
+                                        matchesPattern = accountToCheck.endsWith(patternToCheck);
+                                        break;
+                                    case 'contains':
+                                        matchesPattern = accountToCheck.includes(patternToCheck);
+                                        break;
+                                    case 'exact':
+                                        matchesPattern = accountToCheck === patternToCheck;
+                                        break;
+                                }
+                                
+                                if (matchesPattern) {
+                                    accountsFromFile1.set(account, {
+                                        sheetName: sheetName,
+                                        rowIndex: rowIndex + 1 // +1 porque Excel comienza en 1
+                                    });
+                                }
+                            }
+                        });
+                    });
+                    
+                    // Procesar el archivo 2 (primera hoja)
+                    const firstSheetName = file2Data.SheetNames[0];
+                    const worksheet2 = file2Data.Sheets[firstSheetName];
+                    const jsonData2 = XLSX.utils.sheet_to_json(worksheet2, { header: 1 });
+                    
+                    // Encontrar coincidencias
+                    matches = [];
+                    const headers = jsonData2[0]; // Asumimos que la primera fila son los encabezados
+                    
+                    for (let i = 1; i < jsonData2.length; i++) {
+                        const row = jsonData2[i];
+                        if (row.length > 0) {
+                            const account = String(row[0]);
+                            
+                            if (accountsFromFile1.has(account)) {
+                                // Agregar información de la hoja donde se encontró y el mensaje
+                                const matchInfo = accountsFromFile1.get(account);
+                                matches.push({
+                                    rowData: row,
+                                    sheetName: matchInfo.sheetName,
+                                    rowIndex: matchInfo.rowIndex,
+                                    message: "Entregada a Radicación"
+                                });
+                            }
+                        }
+                    }
+                    
+                    // Mostrar resultados
+                    displayResults(headers, matches);
+                    
+                } catch (error) {
+                    alert('Error al procesar los archivos: ' + error.message);
+                } finally {
+                    loadingDiv.style.display = 'none';
+                    processBtn.disabled = false;
+                }
+            }, 100);
+        }
+        
+        // Mostrar los resultados en una tabla
+        function displayResults(headers, matches) {
+            // Actualizar estadísticas
+            updateStats(matches);
+            
+            // Actualizar filtros de hoja
+            updateSheetFilter(matches);
+            
+            if (matches.length === 0) {
+                resultCount.textContent = "No se encontraron coincidencias.";
+                resultCount.style.backgroundColor = '#ffebee';
+                resultCount.style.color = '#c62828';
+                resultCount.style.borderLeftColor = '#f44336';
+                filterSection.style.display = 'none';
+            } else {
+                resultCount.textContent = `Se encontraron ${matches.length} coincidencias.`;
+                resultCount.style.backgroundColor = '#e8f5e9';
+                resultCount.style.color = '#2E7D32';
+                resultCount.style.borderLeftColor = '#4CAF50';
+                filterSection.style.display = 'flex';
+            }
+            
+            // Mostrar tabla con todos los resultados inicialmente
+            renderTable(headers, matches);
+            
+            resultsDiv.style.display = 'block';
+            
+            // Desplazar suavemente hacia los resultados
+            resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        
+        // Actualizar estadísticas
+        function updateStats(matches) {
+            const uniqueSheets = new Set(matches.map(match => match.sheetName));
+            const statsHTML = `
+                <div class="stat-card">
+                    <h4>Total de Coincidencias</h4>
+                    <p>${matches.length}</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Hojas con Coincidencias</h4>
+                    <p>${uniqueSheets.size}</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Archivo 1 (Hojas)</h4>
+                    <p>${file1Data.SheetNames.length}</p>
+                </div>
+                <div class="stat-card">
+                    <h4>Archivo 2 (Filas)</h4>
+                    <p>${file2Data.SheetNames.length > 0 ? XLSX.utils.sheet_to_json(file2Data.Sheets[file2Data.SheetNames[0]]).length : 0}</p>
+                </div>
+            `;
+            
+            statsSection.innerHTML = statsHTML;
+        }
+        
+        // Actualizar filtro de hojas
+        function updateSheetFilter(matches) {
+            const uniqueSheets = [...new Set(matches.map(match => match.sheetName))];
+            let optionsHTML = '<option value="">Todas las hojas</option>';
+            
+            uniqueSheets.forEach(sheet => {
+                optionsHTML += `<option value="${sheet}">${sheet}</option>`;
+            });
+            
+            sheetFilter.innerHTML = optionsHTML;
+        }
+        
+        // Aplicar filtros a los resultados
+        function applyFilters() {
+            const searchTerm = searchFilter.value.toLowerCase();
+            const selectedSheet = sheetFilter.value;
+            const selectedStatus = statusFilter.value;
+            
+            const filteredMatches = matches.filter(match => {
+                // Filtrar por término de búsqueda
+                const matchesSearch = match.rowData.some(cell => 
+                    String(cell).toLowerCase().includes(searchTerm)
+                );
+                
+                // Filtrar por hoja
+                const matchesSheet = !selectedSheet || match.sheetName === selectedSheet;
+                
+                // Filtrar por estado
+                const matchesStatus = !selectedStatus || match.message === selectedStatus;
+                
+                return matchesSearch && matchesSheet && matchesStatus;
+            });
+            
+            // Actualizar contador
+            if (filteredMatches.length === 0) {
+                resultCount.textContent = "No se encontraron coincidencias con los filtros aplicados.";
+                resultCount.style.backgroundColor = '#ffebee';
+                resultCount.style.color = '#c62828';
+                resultCount.style.borderLeftColor = '#f44336';
+            } else {
+                resultCount.textContent = `Se encontraron ${filteredMatches.length} coincidencias (filtradas de ${matches.length} totales).`;
+                resultCount.style.backgroundColor = '#e8f5e9';
+                resultCount.style.color = '#2E7D32';
+                resultCount.style.borderLeftColor = '#4CAF50';
+            }
+            
+            // Obtener encabezados del archivo 2
+            const firstSheetName = file2Data.SheetNames[0];
+            const worksheet2 = file2Data.Sheets[firstSheetName];
+            const jsonData2 = XLSX.utils.sheet_to_json(worksheet2, { header: 1 });
+            const headers = jsonData2[0];
+            
+            // Volver a renderizar la tabla con los resultados filtrados
+            renderTable(headers, filteredMatches);
+        }
+        
+        // Renderizar tabla de resultados
+        function renderTable(headers, data) {
+            if (data.length === 0) {
+                resultTableContainer.innerHTML = '<p style="text-align: center; padding: 20px; color: #666;">No se encontraron coincidencias con los criterios actuales.</p>';
+                return;
+            }
+            
+            let tableHTML = '<table><thead><tr>';
+            
+            // Crear encabezados de tabla (incluyendo las nuevas columnas)
+            headers.forEach((header, index) => {
+                tableHTML += `<th data-column="${index}">${header} ${getSortIcon(index)}</th>`;
+            });
+            tableHTML += '<th data-column="sheet">Hoja de Origen</th>';
+            tableHTML += '<th data-column="status">Estado</th></tr></thead><tbody>';
+            
+            // Agregar filas de datos
+            data.forEach(match => {
+                tableHTML += '<tr>';
+                // Datos originales del archivo 2
+                match.rowData.forEach(cell => {
+                    tableHTML += `<td>${cell}</td>`;
+                });
+                // Agregar información de la hoja y el mensaje
+                tableHTML += `<td>${match.sheetName}</td>`;
+                tableHTML += `<td><span class="status-delivered">${match.message}</span></td>`;
+                tableHTML += '</tr>';
+            });
+            
+            tableHTML += '</tbody></table>';
+            resultTableContainer.innerHTML = tableHTML;
+            
+            // Agregar event listeners para ordenar
+            document.querySelectorAll('th[data-column]').forEach(th => {
+                th.addEventListener('click', () => {
+                    const column = th.getAttribute('data-column');
+                    sortTable(column);
+                });
+            });
+        }
+        
+        // Obtener icono de ordenación
+        function getSortIcon(columnIndex) {
+            if (currentSort.column === columnIndex) {
+                return currentSort.direction === 'asc' ? '▲' : '▼';
+            }
+            return '';
+        }
+        
+        // Ordenar tabla
+        function sortTable(column) {
+            // Determinar dirección de ordenación
+            let direction = 'asc';
+            if (currentSort.column === column && currentSort.direction === 'asc') {
+                direction = 'desc';
+            }
+            
+            currentSort = { column, direction };
+            
+            // Obtener encabezados del archivo 2
+            const firstSheetName = file2Data.SheetNames[0];
+            const worksheet2 = file2Data.Sheets[firstSheetName];
+            const jsonData2 = XLSX.utils.sheet_to_json(worksheet2, { header: 1 });
+            const headers = jsonData2[0];
+            
+            // Aplicar ordenación
+            const sortedMatches = [...matches].sort((a, b) => {
+                let valueA, valueB;
+                
+                if (column === 'sheet') {
+                    valueA = a.sheetName;
+                    valueB = b.sheetName;
+                } else if (column === 'status') {
+                    valueA = a.message;
+                    valueB = b.message;
+                } else {
+                    const colIndex = parseInt(column);
+                    valueA = a.rowData[colIndex];
+                    valueB = b.rowData[colIndex];
+                }
+                
+                // Convertir a string para comparar
+                valueA = String(valueA || '');
+                valueB = String(valueB || '');
+                
+                if (direction === 'asc') {
+                    return valueA.localeCompare(valueB);
+                } else {
+                    return valueB.localeCompare(valueA);
+                }
+            });
+            
+            // Volver a renderizar la tabla
+            renderTable(headers, sortedMatches);
+        }
+        
+        // Descargar los resultados en un archivo Excel
+        function downloadResults() {
+            if (matches.length === 0) {
+                alert('No hay resultados para descargar.');
+                return;
+            }
+            
+            try {
+                // Obtener los encabezados del archivo 2
+                const firstSheetName = file2Data.SheetNames[0];
+                const worksheet2 = file2Data.Sheets[firstSheetName];
+                const jsonData2 = XLSX.utils.sheet_to_json(worksheet2, { header: 1 });
+                const headers = jsonData2[0];
+                
+                // Agregar las nuevas columnas a los encabezados
+                const extendedHeaders = [...headers, 'Hoja de Origen', 'Estado'];
+                
+                // Preparar los datos para la hoja de cálculo
+                const resultData = matches.map(match => {
+                    return [...match.rowData, match.sheetName, match.message];
+                });
+                
+                // Crear una nueva hoja de trabajo con los resultados
+                const resultWorksheet = XLSX.utils.aoa_to_sheet([extendedHeaders, ...resultData]);
+                
+                // Crear un nuevo libro de trabajo
+                const newWorkbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(newWorkbook, resultWorksheet, 'Coincidencias');
+                
+                // Generar el archivo Excel y descargarlo
+                XLSX.writeFile(newWorkbook, 'coincidencias_encontradas.xlsx');
+                
+            } catch (error) {
+                alert('Error al generar el archivo de resultados: ' + error.message);
+            }
+        }
+        
+        // Copiar resultados al portapapeles
+        function copyResults() {
+            if (matches.length === 0) {
+                alert('No hay resultados para copiar.');
+                return;
+            }
+            
+            try {
+                // Obtener los encabezados del archivo 2
+                const firstSheetName = file2Data.SheetNames[0];
+                const worksheet2 = file2Data.Sheets[firstSheetName];
+                const jsonData2 = XLSX.utils.sheet_to_json(worksheet2, { header: 1 });
+                const headers = jsonData2[0];
+                
+                // Agregar las nuevas columnas a los encabezados
+                const extendedHeaders = [...headers, 'Hoja de Origen', 'Estado'];
+                
+                // Preparar los datos para el portapapeles
+                let clipboardData = extendedHeaders.join('\t') + '\n';
+                
+                matches.forEach(match => {
+                    const rowData = match.rowData.map(cell => String(cell)).join('\t');
+                    clipboardData += `${rowData}\t${match.sheetName}\t${match.message}\n`;
+                });
+                
+                // Copiar al portapapeles
+                navigator.clipboard.writeText(clipboardData)
+                    .then(() => {
+                        alert('Resultados copiados al portapapeles correctamente.');
+                    })
+                    .catch(err => {
+                        console.error('Error al copiar al portapapeles: ', err);
+                        alert('Error al copiar al portapapeles. Por favor, intente nuevamente.');
+                    });
+                
+            } catch (error) {
+                alert('Error al preparar los resultados para copiar: ' + error.message);
+            }
+        }
+        
+        // Limpiar todo y reiniciar
+        function resetAll() {
+            // Limpiar datos
+            file1Data = null;
+            file2Data = null;
+            matches = [];
+            
+            // Limpiar inputs de archivos
+            file1Input.value = '';
+            file2Input.value = '';
+            
+            // Limpiar información de archivos
+            file1Info.textContent = '';
+            file2Info.textContent = '';
+            
+            // Ocultar vistas previas
+            document.getElementById('file1-preview').style.display = 'none';
+            document.getElementById('file2-preview').style.display = 'none';
+            
+            // Ocultar barras de progreso
+            document.getElementById('progress-bar-1').style.display = 'none';
+            document.getElementById('progress-bar-2').style.display = 'none';
+            
+            // Deshabilitar botón de procesar
+            processBtn.disabled = true;
+            
+            // Ocultar resultados
+            resultsDiv.style.display = 'none';
+            loadingDiv.style.display = 'none';
+            
+            // Restablecer filtros
+            searchFilter.value = '';
+            sheetFilter.innerHTML = '<option value="">Todas las hojas</option>';
+            statusFilter.value = '';
+            
+            // Restablecer configuración
+            searchColumn.value = 'A';
+            searchPattern.value = '01000';
+            matchType.value = 'startsWith';
+            caseSensitive.checked = false;
+        }
+    </script>
+</body>
+</html>

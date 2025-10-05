@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RIPS JSON 2275 — Corrección y validación de datos médicos según resolución 2275 de 2023</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+    <!-- Encabezado -->
+    <header>
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center py-3">
+                <div class="d-flex align-items-center">
+                    <div class="header-logo d-flex align-items-center justify-content-center me-3">
+                        <i class="fas fa-sync-alt" style="color: #2b4d8c; font-size: 1.8rem;"></i>
+                    </div>
+                    <div>
+                        <h1 class="h4 mb-0">RIPS JSON 2275 — Módulo de depuración y cumplimiento normativo</h1>
+                        <p class="small mb-0">Sistema para la corrección, validación y ajuste de datos RIPS en formato JSON conforme a la Resolución 2275 de 2023</p>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <p class="small mb-0"><i class="fas fa-user-circle me-2"></i>Usuario: <span id="currentUser">Administrador</span></p>
+                    <p class="small mb-0"><i class="fas fa-calendar-alt me-2"></i><span id="currentDate"></span></p>
+                </div>
+            </div>
+        </div>
+
+ <!-- MODAL DE LOGIN - AGREGAR AL INICIO DEL BODY -->
+    <div id="loginModal" class="login-modal">
+        <div class="login-container">
+            <div class="logo-container">
+                <div class="logo">
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+                <h2>RIPS JSON 2275</h2>
+            </div>
+            
+            <div class="login-header">
+                <h2><i class="fas fa-lock me-2"></i>Acceso al Sistema</h2>
+                <p>Módulo de depuración y cumplimiento normativo</p>
+            </div>
+            
+            <div class="login-body">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username"><i class="fas fa-user me-2"></i>Usuario</label>
+                        <input type="text" id="username" class="form-control" placeholder="Ingrese su usuario" required autofocus>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password"><i class="fas fa-key me-2"></i>Contraseña</label>
+                        <div class="password-container">
+                            <input type="password" id="password" class="form-control" placeholder="Ingrese su contraseña" required>
+                            <button type="button" class="password-toggle" id="passwordToggle">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="rememberMe">
+                        <label class="form-check-label" for="rememberMe">
+                            Recordar mis datos
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-login" style="width: 100%; height: 50px;">
+                        <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                    </button>
+                </form>
+                
+                <div id="loginError" class="alert alert-danger mt-3 hidden" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <span id="errorMessage">Credenciales incorrectas. Intente nuevamente.</span>
+                </div>
+            </div>
+            
+            <div class="login-footer">
+                <p class="mb-0">
+                    ¿Problemas para acceder? Contacte al administrador del sistema.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div id="mainContent" class="hidden">
+    </header>
+
+
+
+
+<div class="container-fluid">
+                <div class="d-flex justify-content-between align-items-center py-3">
+                    <div class="d-flex align-items-center">
+                        <div class="header-logo d-flex align-items-center justify-content-center me-3">
+                            <i class="fas fa-sync-alt" style="color: #2b4d8c; font-size: 1.8rem;"></i>
+                        </div>
+                        <div>
+                            <h1 class="h4 mb-0">RIPS JSON 2275 — Módulo de depuración y cumplimiento normativo</h1>
+                            <p class="small mb-0">Sistema para la corrección, validación y ajuste de datos RIPS en formato JSON conforme a la Resolución 2275 de 2023</p>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <div class="user-info">
+                            <div class="user-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div>
+                                <p class="small mb-0"><i class="fas fa-user-circle me-2"></i><span id="currentUser">Administrador</span></p>
+                                <p class="small mb-0"><i class="fas fa-calendar-alt me-2"></i><span id="currentDate"></span></p>
+                            </div>
+                            <button class="btn btn-sm btn-outline-light logout-btn" id="logoutBtn">
+                                <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+
+
+
+    <!-- Contenido Principal -->
+    <main class="container-fluid py-4">
+        <div class="row">
+            <div class="col-lg-3">
+                <!-- Menú Lateral -->
+                <div class="card sidebar-menu shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="fas fa-bars me-2"></i>Menú</h5>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        <a href="#" class="list-group-item list-group-item-action active" id="dashboardLink">
+                            <i class="fas fa-home me-2"></i>Dashboard
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" id="transformLink">
+                            <i class="fas fa-sync-alt me-2"></i>Validar y corregir JSON
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-file-excel me-2"></i>Importar desde Excel
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-object-group me-2"></i>Fusionar JSON
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-file-export me-2"></i>Exportar a Excel
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-history me-2"></i>Historial
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-cog me-2"></i>Configuración
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Estadísticas -->
+                <div class="card shadow-sm mt-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Procesos de datos</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="stats-card">
+                            <i class="fas fa-exchange-alt"></i>
+                            <h3 id="transformCount">0</h3>
+                            <p>Correcciones y validaciones aplicadas</p>
+                        </div>
+                        <div class="stats-card">
+                            <i class="fas fa-file-code"></i>
+                            <h3 id="fileCount">0</h3>
+                            <p>Archivos procesados</p>
+                        </div>
+                        <div class="stats-card">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h3 id="errorCount">0</h3>
+                            <p>Errores encontrados</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Reglas Aplicadas -->
+                <div class="card shadow-sm mt-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="fas fa-list-check me-2"></i>Reglas activas</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Limpieza de numAutorizacion</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Actualización causaMotivoAtencion</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Normalización nomTecnologiaSalud</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Validación de documentos</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Transformación documentos PT</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Actualización procedimientos</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Validación tipo de usuario</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Transformación hospitalización/urgencias</span>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span>Validación codDiagnosticoPrincipal</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-9">
+                <!-- Sección Dashboard -->
+                <div id="dashboardSection">
+                    <div class="feature-highlight">
+                        <div class="feature-title">
+                            <i class="fas fa-rocket"></i>
+                            RIPS JSON 2275 avanzado
+                        </div>
+                        <p>Corrija, valide y optimice sus archivos RIPS JSON con nuestro sistema especializado</p>
+                        <ul class="feature-list">
+                            <li>Procesamiento masivo de archivos JSON, PDF y XML</li>
+                            <li>Validación de datos con más de 15 reglas predefinidas</li>
+                            <li>Correcciones avanzadas con detección de errores</li>
+                            <li>Exportación de resultados en múltiples formatos</li>
+                        </ul>
+                        <button class="feature-button" id="startTransformBtn">
+                            <i class="fas fa-play-circle me-2"></i>Iniciar validación y correciones
+                        </button>
+                    </div>
+                    
+                    <div class="dashboard-header">
+                        <h3 class="dashboard-header-title">Dashboard de procesamiento RIPS JSON</h3>
+                        <div class="dashboard-header-actions">
+                            <button class="btn btn-sm btn-outline-primary" id="refreshStatsBtn">
+                                <i class="fas fa-sync-alt me-1"></i>Actualizar
+                            </button>
+                            <button class="btn btn-sm btn-primary" id="newProcessBtn">
+                                <i class="fas fa-plus me-1"></i>Nuevo proceso
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="quick-stats">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-file-import"></i>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-title">Archivos cargados</div>
+                                <div class="stat-value" id="dashboardFileCount">0</div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-title">Correcciones exitosas</div>
+                                <div class="stat-value" id="dashboardTransformCount">0</div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-title">Errores detectados</div>
+                                <div class="stat-value" id="dashboardErrorCount">0</div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-title">Tiempo promedio</div>
+                                <div class="stat-value" id="dashboardAvgTime">0s</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="recent-files">
+                                <h5 class="section-title"><i class="fas fa-history me-2"></i>Archivos recientes</h5>
+                                <div id="recentFilesList">
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                                        <p>No hay archivos recientes</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="transform-history">
+                                <h5 class="section-title"><i class="fas fa-list-check me-2"></i>Historial de correcciones</h5>
+                                <div id="historyList">
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                                        <p>No se han hecho correcciones</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Estadísticas de procesamiento</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="dashboard-card">
+                                                <div class="dashboard-title">
+                                                    <i class="fas fa-file"></i> Tipos de Archivos
+                                                </div>
+                                                <div class="d-flex justify-content-around mb-3">
+                                                    <div class="text-center">
+                                                        <div class="file-type-indicator json-file"></div>
+                                                        <span>JSON</span>
+                                                        <div id="jsonPercent">0%</div>
+                                                    </div>
+                                                    <div class="text-center">
+                                                        <div class="file-type-indicator pdf-file"></div>
+                                                        <span>PDF</span>
+                                                        <div id="pdfPercent">0%</div>
+                                                    </div>
+                                                    <div class="text-center">
+                                                        <div class="file-type-indicator xml-file"></div>
+                                                        <span>XML</span>
+                                                        <div id="xmlPercent">0%</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-4">
+                                            <div class="dashboard-card">
+                                                <div class="dashboard-title">
+                                                    <i class="fas fa-tasks"></i> Procesamiento
+                                                </div>
+                                                <div class="d-flex justify-content-around mb-3">
+                                                    <div class="text-center">
+                                                        <i class="fas fa-check-circle text-success mb-2"></i>
+                                                        <div>Éxito</div>
+                                                        <div id="successPercent">0%</div>
+                                                    </div>
+                                                    <div class="text-center">
+                                                        <i class="fas fa-exclamation-triangle text-warning mb-2"></i>
+                                                        <div>Advertencias</div>
+                                                        <div id="warningPercent">0%</div>
+                                                    </div>
+                                                    <div class="text-center">
+                                                        <i class="fas fa-times-circle text-danger mb-2"></i>
+                                                        <div>Errores</div>
+                                                        <div id="errorPercent">0%</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-4">
+                                            <div class="dashboard-card">
+                                                <div class="dashboard-title">
+                                                    <i class="fas fa-bolt"></i> Rendimiento
+                                                </div>
+                                                <div class="dashboard-value" id="avgTime">0s</div>
+                                                <div class="dashboard-footer">Tiempo promedio por archivo</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sección Transformación JSON -->
+                <div id="jsonTransformSection" class="hidden">
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-light">
+                            <h2 class="h5 mb-0"><i class="fas fa-sync-alt me-2"></i>Corregir y validar archivos JSON</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="performance-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <div>
+                                    <strong>Procesos activos:</strong> 
+                                    Se aplicarán todas las reglas de validación solicitadas con detección de errores.
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-4 mb-3">
+                                    <div class="stats-card">
+                                        <i class="fas fa-file-import"></i>
+                                        <h3>Cargar</h3>
+                                        <p>Seleccione archivos o carpetas</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="stats-card">
+                                        <i class="fas fa-cogs"></i>
+                                        <h3>Corregir y validar</h3>
+                                        <p>Aplicar reglas para corrección y validación de datos</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="stats-card">
+                                        <i class="fas fa-file-download"></i>
+                                        <h3>Descargar</h3>
+                                        <p>Obtener archivos modificados</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Área de carga de archivos -->
+                            <div class="card mb-4">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0"><i class="fas fa-file-upload me-2"></i>Cargar archivos</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <div class="upload-area" id="jsonDropZone" role="button" tabindex="0" aria-label="Arrastre y suelte archivos JSON, PDF o XML o haga clic para seleccionar">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                            <p>Arrastra y suelta tus archivos JSON, PDF o XML aquí</p>
+                                            <p class="small text-muted">o haz clic para seleccionar</p>
+                                            <input type="file" id="jsonFileInput" webkitdirectory directory multiple accept=".json,.pdf,.xml" class="d-none" aria-label="Seleccionar archivos">
+                                        </div>
+                                        <div class="form-check mt-3">
+                                            <input class="form-check-input" type="checkbox" id="processSubfolders" checked aria-label="Procesar subcarpetas recursivamente">
+                                            <label class="form-check-label" for="processSubfolders">
+                                                Procesar subcarpetas recursivamente
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="fileListContainer">
+                                        <h5 class="section-title">Archivos seleccionados</h5>
+                                        <div id="folderStructure" class="folder-structure mb-3"></div>
+                                        <div id="fileList" class="mb-3"></div>
+                                        <div id="fileEditor" class="file-editor hidden">
+                                            <div class="file-path" id="currentFilePath"></div>
+                                            <textarea id="fileContentEditor" class="form-control"></textarea>
+                                            <div class="file-editor-actions">
+                                                <button class="btn btn-secondary" id="cancelEditBtn">Cancelar</button>
+                                                <button class="btn btn-primary" id="saveFileBtn">Guardar Cambios</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Reglas de transformación -->
+                            <div class="transform-options">
+                                <h5 class="section-title">Reglas de corrección y validación</h5>
+                                
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-file-invoice me-2"></i>Limpieza de numAutorizacion</h5>
+                                    <div class="transform-description">
+                                        Eliminar comillas dobles innecesarias y espacios en el campo numAutorizacion
+                                    </div>
+                                    <div class="transform-example">
+                                        <div>"numAutorizacion": <span class="text-danger">"\"xxxxxxxxxx\""</span> → <span class="text-success">"xxxxxxxxxx"</span></div>
+                                        <div>"numAutorizacion": <span class="text-danger">" xxxxxxxxxxx "</span> → <span class="text-success">"xxxxxxxxxxx"</span></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-file-medical me-2"></i>Actualización causaMotivoAtencion</h5>
+                                    <div class="transform-description">
+                                        Cambiar valor de causaMotivoAtencion de "13" o "21" a "38"
+                                    </div>
+                                    <div class="transform-example">
+                                        <div>"causaMotivoAtencion": <span class="text-danger">"13"</span> → <span class="text-success">"38"</span></div>
+                                        <div>"causaMotivoAtencion": <span class="text-danger">"21"</span> → <span class="text-success">"38"</span></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-pills me-2"></i>Normalización nomTecnologiaSalud</h5>
+                                    <div class="transform-description">
+                                        Estandarización de nombres en el campo nomTecnologiaSalud
+                                    </div>
+                                    
+                                    <table class="replacement-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Original</th>
+                                                <th>Transformado</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>DEXAMETASONA FOSFATO 4 MGML</td>
+                                                <td>DEXAMETASONA FOSFATO 4MGML</td>
+                                            </tr>
+                                            <tr>
+                                                <td>METOCLOPRAMIDA10 MG2 ML SLN IN</td>
+                                                <td>METOCLOPRAMIDA 10 MG 2ML</td>
+                                            </tr>
+                                            <tr>
+                                                <td>SODIO CLORURO 0.9 solucin inye</td>
+                                                <td>SODIO CLORURO 0.9 SOLUCION</td>
+                                            </tr>
+                                            <tr>
+                                                <td>DICLOFENACO SDICO 75 MG3 ML SO</td>
+                                                <td>DICLOFENACO SDICO 75MG 3ML</td>
+                                            </tr>
+                                            <tr>
+                                                <td>MEROPENEM 1 G POLVO PARA INYEC</td>
+                                                <td>MEROPENEM 1 G POLVO</td>
+                                            </tr>
+                                            <tr>
+                                                <td>HIOSCINA NBUTIL BROMURO20 MGML</td>
+                                                <td>HIOSCINA NBUTILBROMURO 20MGML</td>
+                                            </tr>
+                                            <tr>
+                                                <td>DEXAMETASONA (ACETATO) 8 MGML</td>
+                                                <td>DEXAMETASONA ACETATO 8 MGML</td>
+                                            </tr>
+                                            <tr>
+                                                <td>CLARITROMICINA 500 MG ( IV) PO</td>
+                                                <td>CLARITROMICINA 500 MG</td>
+                                            </tr>
+                                            <tr>
+                                                <td>ACETAMINOFEN 150 MG5 ML (3) JA</td>
+                                                <td>ACETAMINOFEN 150 MG 5ML JA</td>
+                                            </tr>
+                                            <tr>
+                                                <td>FITOMENADIONA (VITAMINA K1) 10</td>
+                                                <td>FITOMENADIONA VITAMINA K1</td>
+                                            </tr>
+                                            <tr>
+                                                <td>GENTAMICINA (SULFATO) 0,3 UNGE</td>
+                                                <td>GENTAMICINA SULFATO 0,3 UNGE</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-exclamation-circle me-2"></i>Validación de Documentos</h5>
+                                    <div class="transform-description">
+                                        Detectar y reportar errores en datos faltantes o inválidos
+                                    </div>
+                                    <div class="transform-example">
+                                        <div>"tipoDocumentoIdentificacion": <span class="text-danger">null</span> → <span class="text-danger">ERROR</span></div>
+                                        <div>"numAutorizacion": <span class="text-danger">null</span> → <span class="text-danger">ERROR</span></div>
+                                        <div>"numAutorizacion": <span class="text-danger">""</span> → <span class="text-danger">ERROR</span></div>
+                                        <div>"codDiagnosticoPrincipal": <span class="text-danger">""</span> → <span class="text-danger">ERROR</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-id-card me-2"></i>Ajustar documentos PT</h5>
+                                    <div class="transform-description">
+                                        Cambiar codPaisOrigen de "170" a "862" cuando tipoDocumentoIdentificacion es "PT"
+                                    </div>
+                                    <div class="transform-example">
+                                        <div>"tipoDocumentoIdentificacion": <span class="text-danger">"PT"</span> y "codPaisOrigen": <span class="text-danger">"170"</span> → <span class="text-success">"codPaisOrigen": "862"</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-procedures me-2"></i>Actualización procedimientos</h5>
+                                    <div class="transform-description">
+                                        Cambiar valores en procedimientos según reglas específicas
+                                    </div>
+                                    <div class="transform-example">
+                                        <div>"finalidadTecnologiaSalud": <span class="text-danger">"44" o "16"</span> → <span class="text-success">"15"</span></div>
+                                        <div>"viaIngresoServicioSalud": <span class="text-danger">"02"</span> → <span class="text-success">"03"</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-user-check me-2"></i>Validación tipo de usuario</h5>
+                                    <div class="transform-description">
+                                        Validar que el tipo de usuario corresponda con el régimen
+                                    </div>
+                                    <div class="transform-example">
+                                        <div>Régimen subsidiado: <span class="text-danger">"tipoUsuario": "01"</span> → <span class="text-danger">ERROR (debe ser "04")</span></div>
+                                        <div>Régimen contributivo: <span class="text-danger">"tipoUsuario": "04"</span> → <span class="text-danger">ERROR (debe ser "01" o "02")</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-hospital me-2"></i>Validación hospitalización y urgencias</h5>
+                                    <div class="transform-description">
+                                        <p>Tomar <code>fechaInicioAtencion</code> de hospitalización y asignarla a <code>fechaEgreso</code> en urgencias</p>
+                                    </div>
+                                    <div class="transform-example">
+                                        <div>"fechaEgreso" (en urgencias): <span class="text-danger">"2025-04-19 12:13"</span> → <span class="text-success">"2025-04-17 16:20"</span> (valor de hospitalización)</div>
+                                    </div>
+                                </div>
+
+                                <div class="transform-option">
+                                    <h5><i class="fas fa-stethoscope me-2"></i>Validación codDiagnosticoPrincipal</h5>
+                                    <div class="transform-description">
+                                        Reportar error cuando codDiagnosticoPrincipal esté vacío
+                                    </div>
+                                    <div class="transform-example">
+                                        <div>"codDiagnosticoPrincipal": <span class="text-danger">""</span> → <span class="text-danger">ERROR</span></div>
+                                        <div>"codDiagnosticoPrincipal": <span class="text-danger">null</span> → <span class="text-danger">ERROR</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="text-center mt-4">
+                                    <button id="transformJsonBtn" class="btn btn-transform" aria-label="Aplicar transformaciones a los archivos seleccionados">
+                                        <i class="fas fa-sync-alt me-2"></i>Procesar datos
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Sección de procesamiento -->
+                            <div id="processingSection" style="display: none;">
+                                <div class="card mb-4">
+                                    <div class="card-header bg-info text-white">
+                                        <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Transformando Archivos</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="progress-container">
+                                            <div class="progress-bar">
+                                                <div class="progress-fill" id="progressFill" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                            <div class="text-end mt-1">
+                                                <span id="progressText">0%</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-3">
+                                            <div class="current-file">
+                                                <i class="fas fa-file-alt me-2"></i>
+                                                <span id="currentFileName">Cargando...</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="validation-results mt-4" id="validationResults">
+                                            <!-- Aquí se mostrarán los resultados de validación -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Resultados de transformación -->
+                            <div id="transformResults" style="display: none;">
+                                <div class="transform-summary">
+                                    <h5 class="section-title"><i class="fas fa-clipboard-list me-2"></i>Detalle de conversión RIPS</h5>
+                                    <div id="transformationsList"></div>
+                                </div>
+                                
+                                <div class="card mb-4">
+                                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0"><i class="fas fa-file-code me-2"></i>Vista Previa JSON Transformado</h5>
+                                        <div>
+                                            <button id="downloadAllBtn" class="btn btn-light btn-sm me-2" aria-label="Descargar todos los archivos transformados">
+                                                <i class="fas fa-download me-1"></i>Descargar Todos
+                                            </button>
+                                            <button id="downloadSelectedBtn" class="btn btn-outline-light btn-sm" aria-label="Descargar archivo seleccionado">
+                                                <i class="fas fa-file-download me-1"></i>Descargar Selección
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <select id="fileSelector" class="form-select" aria-label="Seleccionar archivo para previsualizar">
+                                                <option value="">Seleccione un archivo para previsualizar</option>
+                                            </select>
+                                        </div>
+                                        <pre id="jsonPreview" class="json-viewer"></pre>
+                                    </div>
+                                </div>
+                                
+                                <div id="errorDetailsSection" class="mt-4">
+                                    <!-- Sección de detalles de errores -->
+                                </div>
+                                
+                                <div class="mt-3 text-end">
+                                    <button id="resetProcessBtn" class="btn btn-outline-secondary" aria-label="Reiniciar proceso de transformación">
+                                        <i class="fas fa-redo me-2"></i>Nuevo Proceso
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Pie de Página -->
+    <footer class="mt-5">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5 class="text-uppercase">Cumplimiento normativo-RIPS JSON 2275</h5>
+                    <p>Herramienta para corregir y validar datos RIPS en formato JSON según la resolución 2275/2023.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="text-uppercase">Contacto</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> soporte@ripsjson.com</li>
+                        <li><i class="fas fa-phone me-2"></i> +57 3153478426</li>
+                        <li><i class="fas fa-map-marker-alt me-2"></i> Riohacha, Colombia</li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="text-uppercase">Legal</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-reset">Términos y condiciones</a></li>
+                        <li><a href="#" class="text-reset">Política de privacidad</a></li>
+                        <li><a href="#" class="text-reset">Soporte técnico</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4 bg-light">
+            <div class="text-center">
+                <p class="mb-0">&copy; 2025 Herramienta de corrección y validación de RIPS JSON 2275. Todos los derechos reservados por D&D.</p>
+            </div>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="js/funciones.js"></script>
+</body>
+</html>

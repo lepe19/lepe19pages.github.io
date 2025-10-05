@@ -1,0 +1,1774 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FACTRAMEC - Procesador De Documentos PDF</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Librerías para el clasificador de PDFs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js'></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4895ef;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4cc9f0;
+            --warning: #f72585;
+            --info: #560bad;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            /* Colores para PDF */
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --success-color: #27ae60;
+            --insert-color: #9b59b6;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            flex: 1;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .card-title {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+        }
+        .card-title i {
+            margin-right: 0.5rem;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            margin-bottom: 1rem;
+        }
+        .btn i {
+            margin-right: 0.5rem;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(67, 97, 238, 0.3);
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            transform: translateY(-2px);
+        }
+        .file-preview {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--light-gray);
+            border-radius: 6px;
+            padding: 1rem;
+            margin-top: 1rem;
+            background-color: var(--light);
+        }
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        .file-name {
+            font-weight: 500;
+        }
+        .file-path {
+            font-size: 0.85rem;
+            color: var(--gray);
+            margin-top: 0.25rem;
+        }
+        .status-message {
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+            display: none;
+        }
+        .status-success {
+            background-color: rgba(76, 201, 240, 0.1);
+            border-left: 4px solid var(--success);
+            color: var(--dark);
+        }
+        .status-error {
+            background-color: rgba(247, 37, 133, 0.1);
+            border-left: 4px solid var(--warning);
+            color: var(--dark);
+        }
+        .status-info {
+            background-color: rgba(86, 11, 173, 0.1);
+            border-left: 4px solid var(--info);
+            color: var(--dark);
+        }
+        .progress-container {
+            margin-top: 1.5rem;
+        }
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        .progress-bar {
+            height: 10px;
+            background-color: var(--light-gray);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 5px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .stat-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+        /* Estilos para las pestañas */
+        .tab-container {
+            display: flex;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--light-gray);
+        }
+        .tab {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            background-color: var(--light);
+            border: none;
+            font-weight: 600;
+            color: var(--gray);
+            transition: all 0.3s ease;
+            border-radius: 8px 8px 0 0;
+            margin-right: 0.5rem;
+            user-select: none;
+        }
+        .tab:hover {
+            background-color: var(--light-gray);
+        }
+        .tab.active {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        /* Estilos específicos para el clasificador PDF */
+        .container-pdf {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .upload-section {
+            border: 2px dashed var(--primary-color);
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            background-color: rgba(52, 152, 219, 0.05);
+            transition: all 0.3s;
+        }
+        .upload-section:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+        #pdf-fileInput, #pdf-missingPageInput {
+            display: none;
+        }
+        .custom-file-upload {
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            background-color: white;
+            display: inline-block;
+            padding: 12px 25px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        .custom-file-upload:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        #pdf-fileName, #pdf-missingPageName {
+            margin-top: 15px;
+            font-style: italic;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+            justify-content: center;
+        }
+        button.pdf-btn {
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            min-width: 200px;
+            text-align: center;
+        }
+        #pdf-analyzeBtn {
+            background-color: var(--primary-color);
+        }
+        #pdf-analyzeBtn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        #pdf-saveBtn {
+            background-color: var(--secondary-color);
+        }
+        #pdf-saveBtn:hover {
+            background-color: var(--success-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        #pdf-results {
+            margin-top: 30px;
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .result-section {
+            background-color: white;
+            border-left: 4px solid var(--primary-color);
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 0 8px 8px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+        .result-section:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .result-header {
+            font-weight: bold;
+            color: var(--dark-color);
+            margin-bottom: 15px;
+            font-size: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .page-list {
+            list-style-type: none;
+            padding-left: 0;
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .page-list li {
+            padding: 8px 15px;
+            background-color: var(--light-color);
+            border-radius: 20px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        #pdf-loading {
+            text-align: center;
+            margin: 40px 0;
+            display: none;
+        }
+        .spinner {
+            border: 5px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 5px solid var(--primary);
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .file-prefix {
+            font-weight: bold;
+            color: var(--primary-color);
+            background-color: rgba(52, 152, 219, 0.1);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            word-break: break-all;
+        }
+        .summary {
+            background-color: var(--light-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .progress-container-pdf {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        .progress-bar-pdf {
+            height: 10px;
+            background-color: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .progress-text {
+            text-align: center;
+            margin-top: 5px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        .no-results {
+            text-align: center;
+            padding: 30px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        .range-inputs {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .range-inputs input, .range-inputs select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: auto;
+            text-align: center;
+        }
+        .range-inputs button {
+            padding: 8px 15px;
+            background-color: var(--warning-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            min-width: auto;
+        }
+        .range-inputs button:hover {
+            background-color: #e67e22;
+        }
+        #pdf-splitSection {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: rgba(243, 156, 18, 0.1);
+        }
+        .folder-selector {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .folder-btn {
+            background-color: var(--dark-color);
+            margin-bottom: 10px;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            min-width: 200px;
+            text-align: center;
+        }
+        .folder-btn:hover {
+            background-color: #1a252f;
+        }
+        #pdf-folderPath {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-top: 5px;
+            word-break: break-all;
+        }
+
+        /* Estilos para el encabezado y pie de página */
+        .app-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .app-header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+        .app-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .app-logo h1 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+        .app-nav ul {
+            display: flex;
+            list-style: none;
+            gap: 20px;
+        }
+        .app-nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+        .app-nav a:hover {
+            opacity: 0.8;
+        }
+        .app-footer {
+            background-color: var(--dark);
+            color: white;
+            padding: 1.5rem 0;
+            margin-top: auto;
+        }
+        .app-footer .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+        .footer-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .footer-links {
+            display: flex;
+            gap: 15px;
+        }
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        .footer-links a:hover {
+            color: var(--accent);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            .upload-section {
+                padding: 20px 15px;
+            }
+            button.pdf-btn {
+                width: 100%;
+            }
+            .result-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .range-inputs {
+                flex-direction: column;
+                align-items: center;
+            }
+            .range-inputs input, .range-inputs select {
+                width: 100%;
+            }
+            .app-header .container, .app-footer .container {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            .app-nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Encabezado de la aplicación -->
+    <header class="app-header">
+        <div class="container">
+            <div class="app-logo">
+                <i class="fas fa-file-pdf fa-2x"></i>
+                <div>
+                    <h1>FACTRAMEC</h1>
+                    <p class="subtitle">Procesador de Documentos PDF</p>
+                </div>
+            </div>
+            <nav class="app-nav">
+                <ul>
+                    <li><a href="#organizerTab" class="tab-link" data-tab="organizer">Organizador</a></li>
+                    <li><a href="#pdfClassifierTab" class="tab-link" data-tab="pdfClassifier">Clasificador PDF</a></li>
+                    <li><a href="#"><i class="fas fa-info-circle"></i> Ayuda</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Contenedor de Pestañas -->
+        <div class="tab-container">
+            <div class="tab active" data-tab="organizer">Organizador de Archivos</div>
+            <div class="tab" data-tab="pdfClassifier">Clasificador de PDFs</div>
+        </div>
+
+        <!-- Pestaña 1: Organizador de Archivos (ACTUALIZADA) -->
+        <div class="tab-content active" id="organizerTab">
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-cogs"></i> Configuración</h2>
+                <div class="form-group">
+                    <button id="nuevaEPS-selectFolder" class="btn btn-primary">
+                        <i class="fas fa-folder-open"></i> Seleccionar Carpeta Origen
+                    </button>
+                    <div id="nuevaEPS-folderInfo" class="file-path"></div>
+                </div>
+                <div class="form-group">
+                    <button id="nuevaEPS-selectDestFolder" class="btn btn-primary">
+                        <i class="fas fa-folder-plus"></i> Seleccionar Carpeta Destino
+                    </button>
+                    <div id="nuevaEPS-destFolderInfo" class="file-path"></div>
+                </div>
+                <button id="nuevaEPS-processFiles" class="btn btn-primary">
+                    <i class="fas fa-play"></i> Copiar y Renombrar Archivos
+                </button>
+                <button id="nuevaEPS-resetBtn" class="btn btn-secondary">
+                    <i class="fas fa-undo"></i> Reiniciar
+                </button>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-list"></i> Archivos encontrados</h2>
+                <div id="nuevaEPS-filePreview" class="file-preview" style="display: none;">
+                    <div id="nuevaEPS-fileList"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-tasks"></i> Progreso</h2>
+                <div class="progress-container">
+                    <div class="progress-label">
+                        <span>Progreso:</span>
+                        <span id="nuevaEPS-progressPercent">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="nuevaEPS-progressFill" class="progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-chart-bar"></i> Estadísticas</h2>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="nuevaEPS-totalFiles">0</div>
+                        <div class="stat-label">Archivos Totales</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="nuevaEPS-processedFiles">0</div>
+                        <div class="stat-label">Procesados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="nuevaEPS-copiedFiles">0</div>
+                        <div class="stat-label">Archivos Copiados</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mensajes de estado para Organizador NUEVA EPS -->
+            <div id="nuevaEPS-status" class="status-message">
+                <div id="nuevaEPS-statusContent"></div>
+            </div>
+        </div>
+
+        <!-- Pestaña 2: Clasificador de PDFs -->
+        <div class="tab-content" id="pdfClassifierTab">
+            <div class="container-pdf">
+                <h1><i class="fas fa-file-pdf"></i> FACTRAME</h1>
+                
+                <div class="upload-section">
+                    <p>Selecciona un archivo PDF para clasificar sus páginas por tipo de documento:</p>
+                    <label for="pdf-fileInput" class="custom-file-upload">
+                        <i class="fas fa-file-pdf"></i> Seleccionar PDF
+                    </label>
+                    <input type="file" id="pdf-fileInput" accept=".pdf" />
+                    <div id="pdf-fileName">Ningún archivo seleccionado</div>
+                </div>
+                
+                <div class="upload-section">
+                    <p>Selecciona la página faltante común (SGS):</p>
+                    <label for="pdf-missingPageInput" class="custom-file-upload">
+                        <i class="fas fa-file-pdf"></i> Seleccionar Página Faltante
+                    </label>
+                    <input type="file" id="pdf-missingPageInput" accept=".pdf" />
+                    <div id="pdf-missingPageName">Ningún archivo seleccionado</div>
+                </div>
+                
+                <div class="progress-container-pdf" id="pdf-progressContainer" style="display: none;">
+                    <div class="progress-bar-pdf" id="pdf-progressBar"></div>
+                    <div class="progress-text" id="pdf-progressText">0% completado</div>
+                </div>
+                
+                <div class="controls">
+                    <button id="pdf-analyzeBtn" disabled class="pdf-btn"><i class="fas fa-search"></i> Analizar PDF</button>
+                    <button id="pdf-saveBtn" disabled class="pdf-btn"><i class="fas fa-save"></i> Guardar PDFs Clasificados</button>
+                </div>
+                
+                <div class="folder-selector">
+                    <button id="pdf-selectFolderBtn" class="folder-btn" disabled><i class="fas fa-folder-open"></i> Seleccionar Carpeta Destino</button>
+                    <div id="pdf-folderPath">No se ha seleccionado carpeta</div>
+                </div>
+                
+                <div id="pdf-splitSection">
+                    <h3><i class="fas fa-cut"></i> Dividir PDF por Rango</h3>
+                    <div class="range-inputs">
+                        <span>Desde página:</span>
+                        <input type="number" id="pdf-startPage" min="1" value="1">
+                        <span>Hasta página:</span>
+                        <input type="number" id="pdf-endPage" min="1" value="1">
+                        <span>Prefijo:</span>
+                        <input type="text" id="pdf-splitPrefix" placeholder="DOC" value="DOC">
+                        <button id="pdf-splitByRangeBtn"><i class="fas fa-cut"></i> Dividir PDF</button>
+                    </div>
+                </div>
+                
+                <div class="loading" id="pdf-loading">
+                    <div class="spinner"></div>
+                    <p>Procesando documento, por favor espere...</p>
+                </div>
+                
+                <div id="pdf-results">
+                    <div class="summary" id="pdf-summary"></div>
+                    <div id="pdf-resultsContent"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensajes de estado para Organizador -->
+        <div id="organizer-status" class="status-message">
+            <div id="organizer-statusContent"></div>
+        </div>
+    </div>
+
+    <!-- Pie de página de la aplicación -->
+    <footer class="app-footer">
+        <div class="container">
+            <div class="footer-info">
+                <p><strong>FACTRAMEC</strong> - Procesador de Documentos PDF</p>
+                <p>Desarrollado por D&D</p>
+            </div>
+            <div class="footer-links">
+                <a href="#"><i class="fas fa-envelope"></i> Contacto</a>
+                <a href="#"><i class="fas fa-shield-alt"></i> Privacidad</a>
+                <a href="#"><i class="fas fa-file-contract"></i> Términos</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ============ CÓDIGO DEL ORGANIZADOR DE ARCHIVOS NUEVA EPS ============
+        // Variables para almacenar los handles de los directorios
+        let nuevaEPS_originDirectoryHandle;
+        let nuevaEPS_destDirectoryHandle;
+        let nuevaEPS_allFiles = [];
+        // Estadísticas
+        let nuevaEPS_stats = {
+            total: 0,
+            processed: 0,
+            copied: 0
+        };
+        // Elementos del DOM (¡todos prefijados con "nuevaEPS-"!)
+        const nuevaEPS_selectFolderBtn = document.getElementById('nuevaEPS-selectFolder');
+        const nuevaEPS_selectDestFolderBtn = document.getElementById('nuevaEPS-selectDestFolder');
+        const nuevaEPS_processFilesBtn = document.getElementById('nuevaEPS-processFiles');
+        const nuevaEPS_resetBtn = document.getElementById('nuevaEPS-resetBtn');
+        const nuevaEPS_folderInfo = document.getElementById('nuevaEPS-folderInfo');
+        const nuevaEPS_destFolderInfo = document.getElementById('nuevaEPS-destFolderInfo');
+        const nuevaEPS_filePreview = document.getElementById('nuevaEPS-filePreview');
+        const nuevaEPS_fileList = document.getElementById('nuevaEPS-fileList');
+        const nuevaEPS_statusDiv = document.getElementById('nuevaEPS-status');
+        const nuevaEPS_statusContent = document.getElementById('nuevaEPS-statusContent');
+        const nuevaEPS_progressFill = document.getElementById('nuevaEPS-progressFill');
+        const nuevaEPS_progressPercent = document.getElementById('nuevaEPS-progressPercent');
+        const nuevaEPS_totalFilesEl = document.getElementById('nuevaEPS-totalFiles');
+        const nuevaEPS_processedFilesEl = document.getElementById('nuevaEPS-processedFiles');
+        const nuevaEPS_copiedFilesEl = document.getElementById('nuevaEPS-copiedFiles');
+        
+        // Verificar soporte del navegador
+        if (!('showDirectoryPicker' in window)) {
+            alert('Tu navegador no soporta la File System Access API. Usa Chrome o Edge en un entorno seguro (HTTPS o localhost).');
+            nuevaEPS_selectFolderBtn.disabled = true;
+            nuevaEPS_selectDestFolderBtn.disabled = true;
+            nuevaEPS_processFilesBtn.disabled = true;
+        }
+        
+        // Event listeners
+        nuevaEPS_selectFolderBtn.addEventListener('click', async () => {
+            try {
+                // Reiniciar estado
+                nuevaEPS_stats = { total: 0, processed: 0, copied: 0 };
+                nuevaEPS_allFiles = [];
+                nuevaEPS_updateStats();
+                nuevaEPS_filePreview.style.display = 'none';
+                nuevaEPS_progressFill.style.width = '0%';
+                nuevaEPS_progressPercent.textContent = '0%';
+                nuevaEPS_hideStatus();
+                nuevaEPS_originDirectoryHandle = await window.showDirectoryPicker();
+                nuevaEPS_folderInfo.innerHTML = `<i class="fas fa-folder-open"></i> <strong>Origen:</strong> ${nuevaEPS_originDirectoryHandle.name}`;
+                // Escanear la carpeta en busca de archivos
+                nuevaEPS_showStatus('Escaneando carpeta...', 'info');
+                nuevaEPS_allFiles = await nuevaEPS_scanDirectory(nuevaEPS_originDirectoryHandle);
+                nuevaEPS_stats.total = nuevaEPS_allFiles.length;
+                nuevaEPS_updateStats();
+                // Mostrar vista previa de archivos
+                if (nuevaEPS_stats.total > 0) {
+                    let html = '';
+                    nuevaEPS_allFiles.forEach(file => {
+                        const displayName = file.newName || file.name;
+                        const destFolder = file.category === 'CUV' ? 'CUV' : 'json';
+                        html += `
+                            <div class="file-item">
+                                <div>
+                                    <div class="file-name">${displayName}</div>
+                                    <div class="file-path">Origen: ${file.relativePath}</div>
+                                    <div class="file-path" style="color: var(--success);">Destino: /${destFolder}/${displayName}</div>
+                                    ${file.newName ? `<div class="file-path">(Renombrado desde: ${file.name})</div>` : ''}
+                                </div>
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
+                        `;
+                    });
+                    nuevaEPS_fileList.innerHTML = html;
+                    nuevaEPS_filePreview.style.display = 'block';
+                    nuevaEPS_showStatus(`Escaneo completado. ${nuevaEPS_stats.total} archivos encontrados para copiar.`, 'success');
+                } else {
+                    nuevaEPS_fileList.innerHTML = '<p>No se encontraron archivos .json o _CUV.txt en la carpeta seleccionada.</p>';
+                    nuevaEPS_filePreview.style.display = 'block';
+                    nuevaEPS_showStatus('No se encontraron archivos .json o _CUV.txt en la carpeta seleccionada.', 'info');
+                }
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    nuevaEPS_showStatus(`Error al seleccionar carpeta: ${error.message}`, 'error');
+                }
+            }
+        });
+        
+        nuevaEPS_selectDestFolderBtn.addEventListener('click', async () => {
+            try {
+                nuevaEPS_destDirectoryHandle = await window.showDirectoryPicker();
+                nuevaEPS_destFolderInfo.innerHTML = `<i class="fas fa-folder-plus"></i> <strong>Destino:</strong> ${nuevaEPS_destDirectoryHandle.name}`;
+                nuevaEPS_hideStatus();
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    nuevaEPS_showStatus(`Error al seleccionar carpeta destino: ${error.message}`, 'error');
+                }
+            }
+        });
+        
+        nuevaEPS_processFilesBtn.addEventListener('click', async () => {
+            if (!nuevaEPS_originDirectoryHandle) {
+                nuevaEPS_showStatus('Por favor, seleccione primero la carpeta origen', 'error');
+                return;
+            }
+            if (!nuevaEPS_destDirectoryHandle) {
+                nuevaEPS_showStatus('Por favor, seleccione la carpeta destino', 'error');
+                return;
+            }
+            if (nuevaEPS_stats.total === 0) {
+                nuevaEPS_showStatus('No hay archivos para procesar', 'error');
+                return;
+            }
+            try {
+                nuevaEPS_showStatus('Copiando archivos...', 'info');
+                nuevaEPS_progressFill.style.width = '0%';
+                nuevaEPS_progressPercent.textContent = '0%';
+                nuevaEPS_stats.processed = 0;
+                nuevaEPS_stats.copied = 0;
+                nuevaEPS_updateStats();
+                const totalFiles = nuevaEPS_allFiles.length;
+                // Crear carpetas json y CUV en destino
+                const jsonDirHandle = await nuevaEPS_destDirectoryHandle.getDirectoryHandle('json', { create: true });
+                const cuvDirHandle = await nuevaEPS_destDirectoryHandle.getDirectoryHandle('CUV', { create: true });
+                for (let i = 0; i < nuevaEPS_allFiles.length; i++) {
+                    const file = nuevaEPS_allFiles[i];
+                    try {
+                        // Obtener el archivo
+                        const fileData = await file.handle.getFile();
+                        const fileContent = await fileData.arrayBuffer();
+                        // Determinar carpeta destino
+                        let targetDirHandle = file.category === 'CUV' ? cuvDirHandle : jsonDirHandle;
+                        let finalFileName = file.newName || file.name;
+                        // Crear o reemplazar archivo en la carpeta correspondiente
+                        const destFileHandle = await targetDirHandle.getFileHandle(finalFileName, { create: true });
+                        const writable = await destFileHandle.createWritable();
+                        await writable.write(fileContent);
+                        await writable.close();
+                        nuevaEPS_stats.copied++;
+                    } catch (error) {
+                        console.error(`Error al copiar ${file.relativePath}:`, error);
+                    } finally {
+                        nuevaEPS_stats.processed++;
+                        nuevaEPS_updateStats();
+                        const progress = Math.round(((i + 1) / totalFiles) * 100);
+                        nuevaEPS_progressFill.style.width = `${progress}%`;
+                        nuevaEPS_progressPercent.textContent = `${progress}%`;
+                    }
+                }
+                const cuvCount = nuevaEPS_allFiles.filter(f => f.category === 'CUV').length;
+                const jsonCount = nuevaEPS_stats.copied - cuvCount;
+                nuevaEPS_showStatus(`Proceso completado. ${jsonCount} archivos en /json, ${cuvCount} en /CUV.`, 'success');
+            } catch (error) {
+                nuevaEPS_showStatus(`Error durante el procesamiento: ${error.message}`, 'error');
+            }
+        });
+        
+        nuevaEPS_resetBtn.addEventListener('click', () => {
+            nuevaEPS_originDirectoryHandle = null;
+            nuevaEPS_destDirectoryHandle = null;
+            nuevaEPS_allFiles = [];
+            nuevaEPS_stats = { total: 0, processed: 0, copied: 0 };
+            nuevaEPS_folderInfo.innerHTML = '';
+            nuevaEPS_destFolderInfo.innerHTML = '';
+            nuevaEPS_fileList.innerHTML = '';
+            nuevaEPS_filePreview.style.display = 'none';
+            nuevaEPS_progressFill.style.width = '0%';
+            nuevaEPS_progressPercent.textContent = '0%';
+            nuevaEPS_updateStats();
+            nuevaEPS_hideStatus();
+        });
+        
+        // Función para escanear el directorio recursivamente — SOLO .json y _CUV.txt
+        async function nuevaEPS_scanDirectory(directoryHandle, relativePath = '') {
+            const files = [];
+            for await (const entry of directoryHandle.values()) {
+                const currentRelativePath = relativePath ? `${relativePath}/${entry.name}` : entry.name;
+                if (entry.kind === 'file') {
+                    const fileName = entry.name;
+                    let newName = null;
+                    let category = null;
+                    // Procesar archivos _CUV.txt
+                    if (fileName.match(/^ResultadosMSPS_([A-Za-z0-9]+)_ID[0-9]+_A_CUV\.txt$/i)) {
+                        newName = nuevaEPS_extractNewName(fileName);
+                        if (newName) {
+                            category = 'CUV';
+                        }
+                    }
+                    // Procesar archivos .json (case insensitive)
+                    else if (fileName.toLowerCase().endsWith('.json')) {
+                        category = 'json';
+                    }
+                    if (category) {
+                        files.push({
+                            handle: entry,
+                            name: fileName,
+                            newName: newName, // solo aplica a CUV
+                            category: category, // 'json' o 'CUV'
+                            relativePath: currentRelativePath
+                        });
+                    }
+                } else if (entry.kind === 'directory') {
+                    // Escanear subdirectorios recursivamente
+                    const subFiles = await nuevaEPS_scanDirectory(entry, currentRelativePath);
+                    files.push(...subFiles);
+                }
+            }
+            return files;
+        }
+        
+        // Función para extraer el nuevo nombre de los archivos _CUV.txt
+        function nuevaEPS_extractNewName(originalName) {
+            const match = originalName.match(/^ResultadosMSPS_([A-Za-z0-9]+)_ID[0-9]+_A_CUV\.txt$/i);
+            return match ? `${match[1]}_CUV.json` : null;
+        }
+        
+        // Función para mostrar mensajes de estado
+        function nuevaEPS_showStatus(message, type) {
+            nuevaEPS_statusContent.textContent = message;
+            nuevaEPS_statusDiv.className = `status-message status-${type}`;
+            nuevaEPS_statusDiv.style.display = 'block';
+        }
+        
+        // Función para ocultar mensajes de estado
+        function nuevaEPS_hideStatus() {
+            nuevaEPS_statusDiv.style.display = 'none';
+        }
+        
+        // Función para actualizar las estadísticas
+        function nuevaEPS_updateStats() {
+            nuevaEPS_totalFilesEl.textContent = nuevaEPS_stats.total;
+            nuevaEPS_processedFilesEl.textContent = nuevaEPS_stats.processed;
+            nuevaEPS_copiedFilesEl.textContent = nuevaEPS_stats.copied;
+        }
+
+        // ============ CÓDIGO DEL CLASIFICADOR DE PDFs ============
+        // Elementos del DOM para PDF (¡todos prefijados con "pdf-"!)
+        const pdfFileInput = document.getElementById('pdf-fileInput');
+        const pdfAnalyzeBtn = document.getElementById('pdf-analyzeBtn');
+        const pdfSaveBtn = document.getElementById('pdf-saveBtn');
+        const pdfFileName = document.getElementById('pdf-fileName');
+        const pdfLoading = document.getElementById('pdf-loading');
+        const pdfResults = document.getElementById('pdf-results');
+        const pdfResultsContent = document.getElementById('pdf-resultsContent');
+        const pdfSummary = document.getElementById('pdf-summary');
+        const pdfProgressContainer = document.getElementById('pdf-progressContainer');
+        const pdfProgressBar = document.getElementById('pdf-progressBar');
+        const pdfProgressText = document.getElementById('pdf-progressText');
+        const pdfSplitSection = document.getElementById('pdf-splitSection');
+        const pdfSplitByRangeBtn = document.getElementById('pdf-splitByRangeBtn');
+        const pdfSelectFolderBtn = document.getElementById('pdf-selectFolderBtn');
+        const pdfFolderPath = document.getElementById('pdf-folderPath');
+        const pdfMissingPageInput = document.getElementById('pdf-missingPageInput');
+        const pdfMissingPageName = document.getElementById('pdf-missingPageName');
+        
+        // Variables globales para PDF
+        let pdfOriginalFileName = "";
+        let pdfCategorizedPages = {};
+        let pdfBytes = null;
+        let pdfTotalPagesProcessed = 0;
+        let pdfTotalPages = 0;
+        let pdfDirectoryHandle = null;
+        let pdfAllGeneratedFiles = [];
+        let pdfMissingPageBytes = null;
+        
+        // Configuración de categorías
+        const CATEGORIAS = [
+            {
+                name: "FACTURA ELECTRÓNICA",
+                keywords: ["FACTURA ELECTRÓNICA", "FACTURA ELECTRONICA", "FACTURA N°", "FACTURA No"],
+                code: "FVS",
+                color: "#3498db",
+                description: "Documentos de facturación electrónica"
+            },
+            {
+                name: "ANEXO A FACTURA",
+                keywords: ["ANEXO A FACTURA"],
+                code: "FVS",
+                color: "#3498db",
+                description: "Anexos de facturación electrónica"
+            },
+            {
+                name: "PARAFISCALES",
+                keywords: ["EL SUSCRITO REVISOR FISCAL DE LA IPSI ANASHIWAYA "],
+                code: "SGS",
+                color: "#2ecc71",
+                description: "Parafiscales",
+                exclusive: true
+            },
+            {
+                name: "EPICRISIS",
+                keywords: ["EPICRISIS", "INFORME DE ALTA"],
+                code: "EPI",
+                color: "#1abc9c",
+                description: "Informes de epicrisis o resumen al alta"
+            },
+            {
+                name: "HISTORIA CLÍNICA",
+                keywords: ["HISTORIA CLÍNICA", "HISTORIA CLINICA", "HC", "HISTORIA DE ENFERMEDAD"],
+                code: "HAU",
+                color: "#9b59b6",
+                description: "Documentos de historias clínicas completas"
+            },
+            {
+                name: "EVOLUCIÓN",
+                keywords: ["EVOLUCIÓN", "EVOLUCION"],
+                code: "HEV",
+                color: "#e67e22",
+                description: "Notas de evolución del paciente"
+            },
+            {
+                name: "REPORTE DE LABORATORIO",
+                keywords: [
+                    "REPORTE DE LABORATORIO",
+                    "RESULTADO DE LABORATORIO",
+                    "EXAMEN DE LABORATORIO",
+                    "RESULTADOS DE EXAMEN",
+                    "RESULTADO",
+                    "EXAMEN",
+                    "19304",
+                    "ECOGRAFIA ABDOMINAL TOTAL",
+                    "RADIOLOGIA DIGITAL",
+                    /\bRESULTADO\s*\d+/i,
+                    /\bEXAMEN\s*\d+/i,
+                    /\bPRESTACION\s*\d+/i,
+                    /\bPRESTACIÓN\s*\d+/i
+                ],
+                code: "PDX",
+                color: "#34495e",
+                description: "Resultados de exámenes y prestaciones médicas"
+            },
+            {
+                name: "HOJA DE TRATAMIENTO",
+                keywords: ["HOJA DE TRATAMIENTO", "TRATAMIENTO MÉDICO", "ORDEN MÉDICA", "PRESCRIPCIÓN"],
+                code: "HAM",
+                color: "#f39c12",
+                description: "Hojas de tratamiento y órdenes médicas"
+            },
+        ];
+        
+        // Inicializar categorías
+        function initPdfCategories() {
+            pdfCategorizedPages = {};
+            CATEGORIAS.forEach(cat => {
+                if (cat.code === "FVS") {
+                    if (!pdfCategorizedPages["FACTURAS"]) {
+                        pdfCategorizedPages["FACTURAS"] = {
+                            pages: [],
+                            code: "FVS",
+                            color: "#3498db",
+                            description: "Facturas electrónicas y sus anexos",
+                            subcategories: ["FACTURA ELECTRÓNICA", "ANEXO A FACTURA"]
+                        };
+                    }
+                } else {
+                    pdfCategorizedPages[cat.name] = {
+                        pages: [],
+                        code: cat.code,
+                        color: cat.color,
+                        description: cat.description,
+                        exclusive: cat.exclusive || false
+                    };
+                }
+            });
+            // Inicializar categoría PDE como categoría comodín
+            pdfCategorizedPages["PDE"] = {
+                pages: [],
+                code: "PDE",
+                color: "#95a5a6",
+                description: "Páginas no clasificadas en otras categorías conocidas (incluye documentos de referencia, cédulas, etc.)",
+                exclusive: false
+            };
+            // Inicializar nuevas categorías OCR que también van a PDE
+            pdfCategorizedPages["PÁGINAS OCR PDE"] = {
+                pages: [],
+                code: "PDE",
+                color: "#95a5a6",
+                description: "Páginas identificadas por OCR como AUTORIZACION DE SERVICIOS, INFORME DE LA ATENCION INICIAL DE URGENCIAS, CEDULA DE CIUDADANIA o BDUA",
+                exclusive: false
+            };
+            // Categoría OCR para CRC
+            pdfCategorizedPages["PÁGINAS OCR CRC"] = {
+                pages: [],
+                code: "CRC",
+                color: "#9b59b6",
+                description: "Páginas identificadas por OCR como COMPROBANTE DE PRESTACION DE SERVICIOS",
+                exclusive: false
+            };
+        }
+        
+        // Manejar selección de página faltante
+        pdfMissingPageInput.addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+                    pdfMissingPageName.textContent = file.name;
+                    // Cargar el PDF y verificar que solo tenga una página
+                    const reader = new FileReader();
+                    reader.onload = async function(event) {
+                        try {
+                            const pdf = await pdfjsLib.getDocument(event.target.result).promise;
+                            if (pdf.numPages !== 1) {
+                                alert('El archivo de página faltante debe contener exactamente una página.');
+                                pdfMissingPageInput.value = '';
+                                pdfMissingPageName.textContent = "Ningún archivo seleccionado";
+                                pdfMissingPageBytes = null;
+                                return;
+                            }
+                            // Guardar los bytes del PDF
+                            pdfMissingPageBytes = event.target.result;
+                        } catch (error) {
+                            console.error("Error al cargar PDF de página faltante:", error);
+                            pdfMissingPageInput.value = '';
+                            pdfMissingPageName.textContent = "Ningún archivo seleccionado";
+                            pdfMissingPageBytes = null;
+                        }
+                    };
+                    reader.readAsArrayBuffer(file);
+                } else {
+                    alert('Por favor, selecciona un archivo PDF válido.');
+                    e.target.value = '';
+                    pdfMissingPageName.textContent = "Ningún archivo seleccionado";
+                    pdfMissingPageBytes = null;
+                }
+            } else {
+                pdfMissingPageName.textContent = "Ningún archivo seleccionado";
+                pdfMissingPageBytes = null;
+            }
+        });
+        
+        // Manejar selección de archivo para clasificación
+        pdfFileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+                    pdfOriginalFileName = file.name.replace(/\.pdf$/i, '');
+                    pdfFileName.textContent = file.name;
+                    pdfAnalyzeBtn.disabled = false;
+                    pdfSaveBtn.disabled = true;
+                    pdfSelectFolderBtn.disabled = false;
+                    pdfSplitSection.style.display = 'none';
+                    pdfResults.style.display = 'none';
+                    pdfProgressContainer.style.display = 'none';
+                    pdfAllGeneratedFiles = [];
+                } else {
+                    alert('Por favor, selecciona un archivo PDF válido.');
+                    e.target.value = '';
+                    pdfFileName.textContent = "Ningún archivo seleccionado";
+                }
+            } else {
+                pdfFileName.textContent = "Ningún archivo seleccionado";
+                pdfAnalyzeBtn.disabled = true;
+                pdfSaveBtn.disabled = true;
+                pdfSelectFolderBtn.disabled = true;
+                pdfSplitSection.style.display = 'none';
+            }
+        });
+        
+        // Manejar selección de carpeta
+        pdfSelectFolderBtn.addEventListener('click', async function() {
+            try {
+                if ('showDirectoryPicker' in window) {
+                    pdfDirectoryHandle = await window.showDirectoryPicker();
+                    pdfFolderPath.textContent = `Carpeta seleccionada: ${pdfDirectoryHandle.name}`;
+                } else {
+                    alert('La API de acceso al sistema de archivos no está disponible en este navegador. Los archivos se descargarán normalmente.');
+                    pdfFolderPath.textContent = "Descarga normal (API no soportada)";
+                }
+            } catch (error) {
+                console.error('Error al seleccionar carpeta:', error);
+                if (error.name !== 'AbortError') {
+                    alert('No se pudo seleccionar la carpeta. Los archivos se descargarán normalmente.');
+                }
+            }
+        });
+        
+        // Función para extraer texto del encabezado
+        async function extractHeaderText(page) {
+            const viewport = page.getViewport({ scale: 1.0 });
+            const headerHeight = viewport.height * 0.2;
+            const textContent = await page.getTextContent({
+                normalizeWhitespace: true,
+                disableCombineTextItems: false,
+                includeMarkedContent: true,
+                viewport: page.getViewport({
+                    scale: 1.0,
+                    offsetX: 0,
+                    offsetY: 0,
+                    width: viewport.width,
+                    height: headerHeight
+                })
+            });
+            return textContent.items.map(item => item.str).join(' ');
+        }
+        
+        // Función para aplicar OCR a una página
+        async function applyOCRToPage(page, numPagina) {
+            console.log(`Aplicando OCR a página ${numPagina}...`);
+            try {
+                // 1. Renderizar la página a un canvas
+                const viewport = page.getViewport({ scale: 1.5 });
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                const renderContext = {
+                    canvasContext: context,
+                    viewport: viewport
+                };
+                await page.render(renderContext).promise;
+                // 2. Obtener la imagen del canvas como Blob
+                const imageDataBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                // 3. Definir las frases específicas para OCR
+                const ocrPhrases = [
+                    { text: "COMPROBANTE DE PRESTACION DE SERVICIOS", category: "PÁGINAS OCR CRC", code: "CRC" },
+                    { text: "AUTORIZACION DE SERVICIOS", category: "PÁGINAS OCR PDE", code: "PDE" },
+                    { text: "INFORME DE LA ATENCION INICIAL DE URGENCIAS", category: "PÁGINAS OCR PDE", code: "PDE" },
+                    { text: "CEDULA DE CIUDADANIA", category: "PÁGINAS OCR PDE", code: "PDE" },
+                    { text: "BDUA", category: "PÁGINAS OCR PDE", code: "PDE" }
+                ];
+                // 4. Aplicar OCR
+                const worker = await Tesseract.createWorker('spa', 1, {
+                     logger: m => {
+                         if (m.status === 'recognizing text') {
+                             console.log(`OCR página ${numPagina}: ${Math.round(m.progress * 100)}%`);
+                         }
+                     }
+                });
+                await worker.load();
+                await worker.loadLanguage('spa');
+                await worker.initialize('spa');
+                const result = await worker.recognize(imageDataBlob);
+                const ocrText = result.data.text.toUpperCase();
+                await worker.terminate();
+                console.log(`Texto OCR para página ${numPagina} (fragmento):`, ocrText.substring(0, 300));
+                // 5. Buscar las frases específicas en el texto OCR
+                for (const phraseObj of ocrPhrases) {
+                    if (ocrText.includes(phraseObj.text)) {
+                        console.log(`Categoría encontrada via OCR en página ${numPagina}: ${phraseObj.category}`);
+                        return phraseObj;
+                    }
+                }
+                return null;
+            } catch (ocrError) {
+                console.error(`Error al aplicar OCR a la página ${numPagina}:`, ocrError);
+                return null;
+            }
+        }
+        
+        async function analyzePDF() {
+            const file = pdfFileInput.files[0];
+            if (!file) return;
+            pdfLoading.style.display = 'block';
+            pdfProgressContainer.style.display = 'block';
+            pdfResults.style.display = 'none';
+            pdfResultsContent.innerHTML = '';
+            pdfSummary.innerHTML = '';
+            pdfAnalyzeBtn.disabled = true;
+            pdfSaveBtn.disabled = true;
+            pdfTotalPagesProcessed = 0;
+            try {
+                initPdfCategories();
+                const arrayBuffer = await file.arrayBuffer();
+                pdfBytes = arrayBuffer;
+                const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                pdfTotalPages = pdf.numPages;
+                document.getElementById('pdf-startPage').value = 1;
+                document.getElementById('pdf-startPage').max = pdfTotalPages;
+                document.getElementById('pdf-endPage').value = pdfTotalPages;
+                document.getElementById('pdf-endPage').max = pdfTotalPages;
+                pdfSplitSection.style.display = 'block';
+                updatePdfProgress(0, pdfTotalPages);
+                for (let numPagina = 1; numPagina <= pdfTotalPages; numPagina++) {
+                    const pagina = await pdf.getPage(numPagina);
+                    const textoEncabezado = await extractHeaderText(pagina);
+                    let categoriaEncontrada = null;
+                    let categoriaCodigo = null;
+                    // 1. PRIMERO VERIFICAR SI ES PARAFISCALES (SGS) - PRIORIDAD MÁXIMA
+                    if (/EL SUSCRITO REVISOR FISCAL DE LA IPSI ANASHIWAYA/i.test(textoEncabezado)) {
+                        categoriaEncontrada = "PARAFISCALES";
+                        categoriaCodigo = "SGS";
+                    }
+                    // 2. VERIFICAR FRASES ESPECÍFICAS PARA PDE (antes de otras categorías)
+                    else if (
+                        /INFORME DE LA ATENCI.N INICIAL DE URGENCIAS/i.test(textoEncabezado) ||
+                        /ADMINISTRADORA DE LOS RECURSOS DEL SISTEMA GENERAL DE SEGURIDAD SOCIAL EN SALUD - ADRES/i.test(textoEncabezado) ||
+                        /BDUA/i.test(textoEncabezado)
+                    ) {
+                        categoriaEncontrada = "PDE";
+                        categoriaCodigo = "PDE";
+                    }
+                    // 3. SI NO ES PARAFISCALES NI FRASES ESPECÍFICAS, VERIFICAR OTRAS CATEGORÍAS
+                    else {
+                        for (const cat of CATEGORIAS) {
+                            if (cat.name === "PARAFISCALES") continue;
+                            for (const keyword of cat.keywords) {
+                                if (typeof keyword === 'string') {
+                                    const regex = new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+                                    if (regex.test(textoEncabezado)) {
+                                        categoriaEncontrada = cat.name;
+                                        categoriaCodigo = cat.code;
+                                        break;
+                                    }
+                                } else if (keyword instanceof RegExp) {
+                                    if (keyword.test(textoEncabezado)) {
+                                        categoriaEncontrada = cat.name;
+                                        categoriaCodigo = cat.code;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (categoriaEncontrada) break;
+                        }
+                    }
+                    // 4. Si no se encontró categoría con texto normal, verificar si es una página de imagen y aplicar OCR
+                    if (!categoriaEncontrada) {
+                        const textContent = await pagina.getTextContent();
+                        if (textContent.items.length === 0 || /^\s*$/.test(textoEncabezado)) {
+                            console.log(`Página ${numPagina} parece ser una imagen, aplicando OCR específico...`);
+                            const ocrResult = await applyOCRToPage(pagina, numPagina);
+                            if (ocrResult) {
+                                categoriaEncontrada = ocrResult.category;
+                                categoriaCodigo = ocrResult.code;
+                            } else {
+                                categoriaEncontrada = "PDE";
+                                categoriaCodigo = "PDE";
+                            }
+                        } else {
+                            categoriaEncontrada = "PDE";
+                            categoriaCodigo = "PDE";
+                        }
+                    }
+                    // Asignar la página a la categoría correspondiente
+                    if (categoriaEncontrada) {
+                        if (categoriaEncontrada === "FACTURA ELECTRÓNICA" || categoriaEncontrada === "ANEXO A FACTURA") {
+                            pdfCategorizedPages["FACTURAS"].pages.push(numPagina);
+                        } else if (categoriaEncontrada === "PDE") {
+                            pdfCategorizedPages["PDE"].pages.push(numPagina);
+                        } else if (pdfCategorizedPages[categoriaEncontrada]) {
+                            pdfCategorizedPages[categoriaEncontrada].pages.push(numPagina);
+                        } else {
+                            pdfCategorizedPages["PDE"].pages.push(numPagina);
+                        }
+                    } else {
+                        pdfCategorizedPages["PDE"].pages.push(numPagina);
+                    }
+                    pdfTotalPagesProcessed++;
+                    updatePdfProgress(pdfTotalPagesProcessed, pdfTotalPages);
+                }
+                mostrarPdfResultados();
+                pdfSaveBtn.disabled = false;
+            } catch (error) {
+                console.error("Error al procesar PDF:", error);
+                pdfResultsContent.innerHTML = `<div class="result-section" style="border-left-color: var(--danger-color)">
+                    <div class="result-header" style="color: var(--danger-color)">
+                        <span><i class="fas fa-exclamation-triangle"></i> Error en el procesamiento</span>
+                    </div>
+                    <p>Ocurrió un error al procesar el PDF: ${error.message}</p>
+                    <p>Por favor, verifique que el archivo no esté dañado y vuelva a intentarlo.</p>
+                </div>`;
+            } finally {
+                pdfLoading.style.display = 'none';
+                pdfResults.style.display = 'block';
+                pdfAnalyzeBtn.disabled = false;
+            }
+        }
+        
+        function updatePdfProgress(processed, total) {
+            const percentage = Math.round((processed / total) * 100);
+            pdfProgressBar.style.width = `${percentage}%`;
+            pdfProgressText.textContent = `${percentage}% completado (${processed} de ${total} páginas procesadas)`;
+        }
+        
+        function mostrarPdfResultados() {
+            let html = '';
+            let totalCategorized = 0;
+            let categoriesFound = 0;
+            const sortedCategories = Object.entries(pdfCategorizedPages)
+                .filter(([_, data]) => data.pages.length > 0)
+                .sort((a, b) => b[1].pages.length - a[1].pages.length);
+            categoriesFound = sortedCategories.length;
+            // Filtrar archivos generados
+            pdfAllGeneratedFiles = pdfAllGeneratedFiles.filter(file =>
+                !file.name.startsWith('FVS_') &&
+                !file.name.startsWith('PDE_') &&
+                !file.name.startsWith('SGS_') &&
+                !file.name.startsWith('HAU_') &&
+                !file.name.startsWith('HEV_') &&
+                !file.name.startsWith('EPI_') &&
+                !file.name.startsWith('PDX_') &&
+                !file.name.startsWith('HAM_') &&
+                !file.name.startsWith('CRC_') &&
+                !file.name.endsWith('.pdf')
+            );
+            for (const [catName, data] of sortedCategories) {
+                totalCategorized += data.pages.length;
+                // Determinar prefijo y nombre de archivo basado en la categoría y su código
+                let prefijo, nombreArchivoFinal;
+                if (catName === "PARAFISCALES") {
+                    prefijo = `SGS_900177624_${pdfOriginalFileName}`;
+                    nombreArchivoFinal = `${prefijo}.pdf`;
+                } else if (catName === "FACTURAS") {
+                    prefijo = `FEV_900177624_${pdfOriginalFileName}`;
+                    nombreArchivoFinal = `${prefijo}.pdf`;
+                } else if (catName === "PÁGINAS OCR CRC") {
+                    prefijo = `CRC_900177624_${pdfOriginalFileName}`;
+                    nombreArchivoFinal = `${prefijo}.pdf`;
+                } else if (catName === "PDE" || catName === "PÁGINAS OCR PDE") {
+                    prefijo = `PDE_900177624_${pdfOriginalFileName}`;
+                    nombreArchivoFinal = `${prefijo}.pdf`;
+                } else {
+                    prefijo = `${data.code}_900177624_${pdfOriginalFileName}`;
+                    nombreArchivoFinal = `${prefijo}.pdf`;
+                }
+                const percentage = Math.round((data.pages.length / pdfTotalPagesProcessed) * 100);
+                const displayName = catName === "FACTURAS" ? "FACTURAS Y ANEXOS" :
+                                   catName === "PDE" ? "PDE (Documentos Varios)" :
+                                   catName === "PÁGINAS OCR PDE" ? "PDE (OCR)" : catName;
+                html += `<div class="result-section" style="border-left-color: ${data.color}">
+                    <div class="result-header">
+                        <span style="color: ${data.color}"><i class="fas fa-file-alt"></i> ${displayName}</span>
+                        <span class="file-prefix">${prefijo}.pdf</span>
+                    </div>
+                    <p>${data.description}</p>`;
+                if (catName === "FACTURAS" && data.subcategories) {
+                    html += `<p><strong>Incluye:</strong> ${data.subcategories.join(", ")}</p>`;
+                }
+                html += `<p><strong>Páginas encontradas:</strong> ${data.pages.length} (${percentage}% del total)</p>
+                    <ul class="page-list">`;
+                const groupedPages = groupConsecutivePages(data.pages);
+                const pageRanges = formatPageRanges(groupedPages);
+                html += `<li>${pageRanges}</li>`;
+                html += `</ul></div>`;
+                // Crear los PDFs
+                if (data.pages.length > 0) {
+                    (async () => {
+                        try {
+                            const { PDFDocument } = PDFLib;
+                            const originalPdfDoc = await PDFDocument.load(pdfBytes);
+                            const pdfDoc = await PDFDocument.create();
+                            const pageIndices = data.pages.map(p => p - 1);
+                            const pages = await pdfDoc.copyPages(originalPdfDoc, pageIndices);
+                            pages.forEach(page => pdfDoc.addPage(page));
+                            const pdfBytesNew = await pdfDoc.save();
+                            pdfAllGeneratedFiles.push({
+                                name: nombreArchivoFinal,
+                                data: pdfBytesNew
+                            });
+                        } catch (error) {
+                            console.error(`Error al preparar PDF para ${catName}:`, error);
+                        }
+                    })();
+                }
+            }
+            // Agregar página faltante como archivo separado si está disponible
+            if (pdfMissingPageBytes) {
+                (async () => {
+                    try {
+                        const { PDFDocument } = PDFLib;
+                        const pdfDoc = await PDFDocument.load(pdfMissingPageBytes);
+                        const pdfBytesNew = await pdfDoc.save();
+                        pdfAllGeneratedFiles.push({
+                            name: `SGS_900177624_${pdfOriginalFileName}.pdf`,
+                            data: pdfBytesNew
+                        });
+                    } catch (error) {
+                        console.error("Error al preparar página faltante:", error);
+                    }
+                })();
+            }
+            const uncategorized = pdfCategorizedPages["PDE"].pages.length;
+            const uncatPercentage = Math.round((uncategorized / pdfTotalPagesProcessed) * 100);
+            pdfSummary.innerHTML = `
+                <h3><i class="fas fa-chart-pie"></i> Resumen del Análisis</h3>
+                <p>Total de páginas procesadas: <strong>${pdfTotalPagesProcessed}</strong></p>
+                <p>Categorías identificadas: <strong>${categoriesFound}</strong></p>
+                <p>Páginas clasificadas: <strong>${totalCategorized}</strong></p>
+                <p>Páginas en PDE (Documentos Varios): <strong>${uncategorized} (${uncatPercentage}%)</strong></p>
+            `;
+            if (sortedCategories.length === 0) {
+                pdfResultsContent.innerHTML = `<div class="no-results">
+                    <p><i class="fas fa-exclamation-circle"></i> No se encontraron coincidencias con las categorías predefinidas.</p>
+                    <p>Todas las páginas se han clasificado como "PDE".</p>
+                </div>`;
+            } else {
+                pdfResultsContent.innerHTML = html;
+            }
+        }
+        
+        function groupConsecutivePages(pages) {
+            if (pages.length === 0) return [];
+            const sortedPages = [...pages].sort((a, b) => a - b);
+            const groups = [];
+            let currentGroup = [sortedPages[0]];
+            for (let i = 1; i < sortedPages.length; i++) {
+                if (sortedPages[i] === currentGroup[currentGroup.length - 1] + 1) {
+                    currentGroup.push(sortedPages[i]);
+                } else {
+                    groups.push(currentGroup);
+                    currentGroup = [sortedPages[i]];
+                }
+            }
+            groups.push(currentGroup);
+            return groups;
+        }
+        
+        function formatPageRanges(groups) {
+            const ranges = [];
+            for (const group of groups) {
+                if (group.length === 1) {
+                    ranges.push(group[0].toString());
+                } else if (group.length === 2) {
+                    ranges.push(group[0].toString(), group[1].toString());
+                } else {
+                    ranges.push(`${group[0]}-${group[group.length-1]}`);
+                }
+            }
+            return ranges.join(',');
+        }
+        
+        async function splitPDFByRange() {
+            const startPage = parseInt(document.getElementById('pdf-startPage').value);
+            const endPage = parseInt(document.getElementById('pdf-endPage').value);
+            const prefix = document.getElementById('pdf-splitPrefix').value.trim() || 'DOC';
+            if (!pdfBytes) {
+                alert("Por favor, carga un archivo PDF primero.");
+                return;
+            }
+            if (isNaN(startPage) || startPage < 1 || startPage > pdfTotalPages) {
+                alert(`Por favor, ingrese un número de página inicial válido entre 1 y ${pdfTotalPages}`);
+                return;
+            }
+            if (isNaN(endPage) || endPage < 1 || endPage > pdfTotalPages) {
+                alert(`Por favor, ingrese un número de página final válido entre 1 y ${pdfTotalPages}`);
+                return;
+            }
+            if (startPage > endPage) {
+                alert("El número de página inicial no puede ser mayor que el final.");
+                return;
+            }
+            if (prefix.length === 0) {
+                alert("Por favor, ingrese un prefijo para el nombre del archivo.");
+                return;
+            }
+            try {
+                pdfLoading.style.display = 'block';
+                pdfSplitByRangeBtn.disabled = true;
+                const { PDFDocument } = PDFLib;
+                const originalPdfDoc = await PDFDocument.load(pdfBytes);
+                const newPdfDoc = await PDFDocument.create();
+                const pageIndices = Array.from({length: endPage - startPage + 1}, (_, i) => startPage - 1 + i);
+                const pages = await newPdfDoc.copyPages(originalPdfDoc, pageIndices);
+                pages.forEach(page => newPdfDoc.addPage(page));
+                const pdfBytesNew = await newPdfDoc.save();
+                const fileName = `${prefix}_900177624_${pdfOriginalFileName}.pdf`;
+                pdfAllGeneratedFiles.push({
+                    name: fileName,
+                    data: pdfBytesNew
+                });
+                pdfResultsContent.insertAdjacentHTML('afterbegin', `
+                    <div class="result-section" style="border-left-color: var(--success-color); margin-bottom: 20px;">
+                        <div class="result-header" style="color: var(--success-color)">
+                            <span><i class="fas fa-check-circle"></i> PDF generado</span>
+                        </div>
+                        <p>Se ha generado el documento <strong>${fileName}</strong> con las páginas ${startPage} a ${endPage}.</p>
+                        <p>El archivo se incluirá en la carpeta destino al guardar.</p>
+                    </div>
+                `);
+            } catch (error) {
+                console.error("Error al dividir PDF:", error);
+                pdfResultsContent.insertAdjacentHTML('afterbegin', `
+                    <div class="result-section" style="border-left-color: var(--danger-color); margin-bottom: 20px;">
+                        <div class="result-header" style="color: var(--danger-color)">
+                            <span><i class="fas fa-exclamation-triangle"></i> Error al dividir el PDF</span>
+                        </div>
+                        <p>Ocurrió un error al procesar el documento: ${error.message}</p>
+                    </div>
+                `);
+            } finally {
+                pdfLoading.style.display = 'none';
+                pdfSplitByRangeBtn.disabled = false;
+            }
+        }
+        
+        async function savePDFs() {
+            if (pdfAllGeneratedFiles.length === 0) {
+                alert("No hay archivos generados para guardar. Por favor, analiza o divide el PDF primero.");
+                return;
+            }
+            if (!pdfDirectoryHandle) {
+                alert('Por favor, selecciona una carpeta destino antes de guardar.');
+                return;
+            }
+            try {
+                pdfLoading.style.display = 'block';
+                pdfSaveBtn.disabled = true;
+                pdfSplitByRangeBtn.disabled = true;
+                let successCount = 0;
+                let errorCount = 0;
+                for (const file of pdfAllGeneratedFiles) {
+                    try {
+                        const fileHandle = await pdfDirectoryHandle.getFileHandle(file.name, { create: true });
+                        const writable = await fileHandle.createWritable();
+                        await writable.write(file.data);
+                        await writable.close();
+                        successCount++;
+                    } catch (error) {
+                        console.error(`Error al guardar el archivo ${file.name}:`, error);
+                        errorCount++;
+                    }
+                }
+                let successMessage = `
+                    <div class="result-section" style="border-left-color: var(--success-color); margin-bottom: 20px;">
+                        <div class="result-header" style="color: var(--success-color)">
+                            <span><i class="fas fa-check-circle"></i> Archivos guardados exitosamente</span>
+                        </div>
+                        <p>Se han guardado <strong>${successCount}</strong> archivos directamente en la carpeta: <strong>${pdfDirectoryHandle.name}</strong>.</p>
+                        <p>Lista de archivos guardados:</p>
+                        <ul style="max-height: 200px; overflow-y: auto;">
+                            ${pdfAllGeneratedFiles.map(file => `<li>${file.name}</li>`).join('')}
+                        </ul>
+                `;
+                if (errorCount > 0) {
+                    successMessage += `
+                        <p style="color: var(--danger-color);"><strong>⚠️ No se pudieron guardar ${errorCount} archivo(s).</strong></p>
+                    `;
+                }
+                successMessage += `</div>`;
+                pdfResultsContent.insertAdjacentHTML('afterbegin', successMessage);
+            } catch (error) {
+                console.error("Error al guardar PDFs:", error);
+                pdfResultsContent.insertAdjacentHTML('afterbegin', `
+                    <div class="result-section" style="border-left-color: var(--danger-color); margin-bottom: 20px;">
+                        <div class="result-header" style="color: var(--danger-color)">
+                            <span><i class="fas fa-exclamation-triangle"></i> Error al guardar archivos</span>
+                        </div>
+                        <p>Ocurrió un error: ${error.message}</p>
+                        <p>Por favor, inténtelo nuevamente.</p>
+                    </div>
+                `);
+            } finally {
+                pdfLoading.style.display = 'none';
+                pdfSaveBtn.disabled = false;
+                pdfSplitByRangeBtn.disabled = false;
+            }
+        }
+        
+        // Manejar clic en el botón de analizar
+        pdfAnalyzeBtn.addEventListener('click', analyzePDF);
+        // Manejar clic en el botón de guardar
+        pdfSaveBtn.addEventListener('click', savePDFs);
+        // Manejar clic en el botón de dividir por rango
+        pdfSplitByRangeBtn.addEventListener('click', splitPDFByRange);
+
+        // ============ MANEJADOR DE PESTAÑAS ============
+        // Manejar cambio de pestañas
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Quitar clase 'active' de todas las pestañas y contenidos
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                // Añadir clase 'active' a la pestaña y contenido seleccionados
+                tab.classList.add('active');
+                const tabId = tab.getAttribute('data-tab');
+                document.getElementById(`${tabId}Tab`).classList.add('active');
+            });
+        });
+
+        // Manejar clic en los enlaces de navegación del encabezado
+        document.querySelectorAll('.tab-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const tabId = this.getAttribute('data-tab');
+                
+                // Quitar clase 'active' de todas las pestañas y contenidos
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Añadir clase 'active' a la pestaña y contenido seleccionados
+                document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
+                document.getElementById(`${tabId}Tab`).classList.add('active');
+            });
+        });
+
+        // ✅ Configurar PDF.js worker después de cargar la librería
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
+        }
+    </script>
+</body>
+</html>

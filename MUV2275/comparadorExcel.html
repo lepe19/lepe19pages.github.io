@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador de Coincidencias Excel</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background: linear-gradient(90deg, #2c3e50 0%, #4a6491 100%);
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-icon {
+            font-size: 2.5rem;
+            color: #4CAF50;
+        }
+        
+        .logo-text h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .logo-text p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 25px;
+        }
+        
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        
+        nav a:hover {
+            color: #4CAF50;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 30px auto;
+            flex: 1;
+            padding: 0 20px;
+        }
+        
+        .main-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .page-title {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, #4CAF50, #2c3e50);
+            border-radius: 2px;
+        }
+        
+        .upload-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 2px dashed #c3cfe2;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            transition: all 0.3s;
+        }
+        
+        .upload-section:hover {
+            border-color: #4CAF50;
+            background-color: #f0f7f0;
+        }
+        
+        .upload-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .upload-section h3::before {
+            content: '📁';
+            font-size: 1.2rem;
+        }
+        
+        .file-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .file-info {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #4a6491;
+            font-weight: 500;
+        }
+        
+        button {
+            background: linear-gradient(90deg, #4CAF50 0%, #2E7D32 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            display: block;
+            margin: 30px auto;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(76, 175, 80, 0.3);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(76, 175, 80, 0.4);
+        }
+        
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .loading {
+            text-align: center;
+            display: none;
+            padding: 30px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .results {
+            margin-top: 30px;
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .results h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        
+        .result-count {
+            background-color: #e8f5e9;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            color: #2E7D32;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background: linear-gradient(90deg, #4a6491 0%, #2c3e50 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        tr:hover {
+            background-color: #f0f7f0;
+        }
+        
+        .status-delivered {
+            background-color: #e8f5e9;
+            color: #2E7D32;
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        footer {
+            background: linear-gradient(90deg, #2c3e50 0%, #1a2530 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-top: 40px;
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+        
+        .footer-section {
+            flex: 1;
+            padding: 0 20px;
+        }
+        
+        .footer-section h3 {
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            color: #4CAF50;
+        }
+        
+        .footer-section p, .footer-section a {
+            color: #bdc3c7;
+            margin-bottom: 10px;
+            display: block;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-section a:hover {
+            color: #4CAF50;
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 20px;
+            margin-top: 20px;
+            border-top: 1px solid #34495e;
+            color: #95a5a6;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                gap: 30px;
+            }
+            
+            table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">📊</div>
+                <div class="logo-text">
+                    <h1>Buscador de Coincidencias</h1>
+                    <p>Herramienta profesional para análisis de datos</p>
+                </div>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#">Inicio</a></li>
+                    <li><a href="#">Funcionalidades</a></li>
+                    <li><a href="#">Documentación</a></li>
+                    <li><a href="#">Soporte</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="main-content">
+            <h2 class="page-title">Buscador de Coincidencias en Excel</h2>
+            
+            <div class="upload-section">
+                <h3>Archivo Principal (con múltiples hojas)</h3>
+                <input type="file" id="file1" accept=".xls,.xlsx" class="file-input">
+                <div id="file1-info" class="file-info"></div>
+            </div>
+            
+            <div class="upload-section">
+                <h3>Archivo a Comparar (con una hoja)</h3>
+                <input type="file" id="file2" accept=".xls,.xlsx" class="file-input">
+                <div id="file2-info" class="file-info"></div>
+            </div>
+            
+            <button id="process-btn" disabled>Buscar Coincidencias</button>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Procesando archivos, por favor espere...</p>
+            </div>
+            
+            <div class="results" id="results">
+                <h3>Resultados de la Búsqueda</h3>
+                <p id="result-count" class="result-count"></p>
+                <div id="result-table-container"></div>
+                <button id="download-btn">Descargar Resultados en Excel</button>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Buscador de Coincidencias</h3>
+                <p>Una herramienta profesional para comparar y analizar datos de archivos Excel de manera eficiente.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Enlaces Rápidos</h3>
+                <a href="#">Inicio</a>
+                <a href="#">Cómo usar</a>
+                <a href="#">Preguntas Frecuentes</a>
+                <a href="#">Contacto</a>
+            </div>
+            <div class="footer-section">
+                <h3>Contacto</h3>
+                <p>Email: soporte@buscadorcoincidencias.com</p>
+                <p>Teléfono: +1 (123) 456-7890</p>
+                <p>Dirección: Calle Ficticia 123, Ciudad</p>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2023 Buscador de Coincidencias. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Variables globales
+        let file1Data = null;
+        let file2Data = null;
+        let matches = [];
+        
+        // Referencias a elementos del DOM
+        const file1Input = document.getElementById('file1');
+        const file2Input = document.getElementById('file2');
+        const file1Info = document.getElementById('file1-info');
+        const file2Info = document.getElementById('file2-info');
+        const processBtn = document.getElementById('process-btn');
+        const loadingDiv = document.getElementById('loading');
+        const resultsDiv = document.getElementById('results');
+        const resultCount = document.getElementById('result-count');
+        const resultTableContainer = document.getElementById('result-table-container');
+        const downloadBtn = document.getElementById('download-btn');
+        
+        // Event listeners
+        file1Input.addEventListener('change', handleFile1Upload);
+        file2Input.addEventListener('change', handleFile2Upload);
+        processBtn.addEventListener('click', processFiles);
+        downloadBtn.addEventListener('click', downloadResults);
+        
+        // Función para manejar la carga del archivo 1 (con múltiples hojas)
+        function handleFile1Upload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            file1Info.textContent = `Archivo cargado: ${file.name} (Tamaño: ${(file.size/1024/1024).toFixed(2)} MB)`;
+            file1Info.style.color = '#4CAF50';
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    file1Data = workbook;
+                    checkFilesReady();
+                } catch (error) {
+                    file1Info.style.color = '#e74c3c';
+                    file1Info.textContent = `Error: ${error.message}`;
+                    alert('Error al leer el archivo 1: ' + error.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        
+        // Función para manejar la carga del archivo 2 (con una hoja)
+        function handleFile2Upload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            file2Info.textContent = `Archivo cargado: ${file.name} (Tamaño: ${(file.size/1024/1024).toFixed(2)} MB)`;
+            file2Info.style.color = '#4CAF50';
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    file2Data = workbook;
+                    checkFilesReady();
+                } catch (error) {
+                    file2Info.style.color = '#e74c3c';
+                    file2Info.textContent = `Error: ${error.message}`;
+                    alert('Error al leer el archivo 2: ' + error.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        
+        // Verificar si ambos archivos están listos para procesar
+        function checkFilesReady() {
+            if (file1Data && file2Data) {
+                processBtn.disabled = false;
+            }
+        }
+        
+        // Procesar los archivos y buscar coincidencias
+        function processFiles() {
+            loadingDiv.style.display = 'block';
+            resultsDiv.style.display = 'none';
+            processBtn.disabled = true;
+            
+            // Usar setTimeout para permitir que se muestre el indicador de carga
+            setTimeout(() => {
+                try {
+                    // Extraer todas las cuentas que comienzan con "01000" del archivo 1 (todas las hojas)
+                    // Ahora almacenamos un objeto con la cuenta y la hoja donde se encontró
+                    const accountsFromFile1 = new Map();
+                    
+                    // Procesar cada hoja del archivo 1
+                    file1Data.SheetNames.forEach(sheetName => {
+                        const worksheet = file1Data.Sheets[sheetName];
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                        
+                        // Buscar en la columna A (índice 0) cuentas que comienzan con "01000"
+                        jsonData.forEach(row => {
+                            if (row.length > 0) {
+                                const account = row[0];
+                                if (typeof account === 'string' && account.startsWith('01000')) {
+                                    accountsFromFile1.set(account, sheetName);
+                                }
+                            }
+                        });
+                    });
+                    
+                    // Procesar el archivo 2 (primera hoja)
+                    const firstSheetName = file2Data.SheetNames[0];
+                    const worksheet2 = file2Data.Sheets[firstSheetName];
+                    const jsonData2 = XLSX.utils.sheet_to_json(worksheet2, { header: 1 });
+                    
+                    // Encontrar coincidencias
+                    matches = [];
+                    const headers = jsonData2[0]; // Asumimos que la primera fila son los encabezados
+                    
+                    for (let i = 1; i < jsonData2.length; i++) {
+                        const row = jsonData2[i];
+                        if (row.length > 0) {
+                            const account = row[0];
+                            if (typeof account === 'string' && account.startsWith('01000') && 
+                                accountsFromFile1.has(account)) {
+                                // Agregar información de la hoja donde se encontró y el mensaje
+                                const sheetName = accountsFromFile1.get(account);
+                                matches.push({
+                                    rowData: row,
+                                    sheetName: sheetName,
+                                    message: "Entregada a Radicación"
+                                });
+                            }
+                        }
+                    }
+                    
+                    // Mostrar resultados
+                    displayResults(headers, matches);
+                    
+                } catch (error) {
+                    alert('Error al procesar los archivos: ' + error.message);
+                } finally {
+                    loadingDiv.style.display = 'none';
+                    processBtn.disabled = false;
+                }
+            }, 100);
+        }
+        
+        // Mostrar los resultados en una tabla
+        function displayResults(headers, matches) {
+            if (matches.length === 0) {
+                resultCount.textContent = "No se encontraron coincidencias.";
+                resultCount.style.backgroundColor = '#ffebee';
+                resultCount.style.color = '#c62828';
+                resultCount.style.borderLeftColor = '#f44336';
+            } else {
+                resultCount.textContent = `Se encontraron ${matches.length} coincidencias.`;
+                resultCount.style.backgroundColor = '#e8f5e9';
+                resultCount.style.color = '#2E7D32';
+                resultCount.style.borderLeftColor = '#4CAF50';
+            }
+            
+            if (matches.length === 0) {
+                resultTableContainer.innerHTML = '<p style="text-align: center; padding: 20px; color: #666;">No se encontraron coincidencias en los archivos cargados.</p>';
+            } else {
+                let tableHTML = '<table><thead><tr>';
+                
+                // Crear encabezados de tabla (incluyendo las nuevas columnas)
+                headers.forEach(header => {
+                    tableHTML += `<th>${header}</th>`;
+                });
+                tableHTML += '<th>Hoja de Origen</th><th>Estado</th></tr></thead><tbody>';
+                
+                // Agregar filas de datos
+                matches.forEach(match => {
+                    tableHTML += '<tr>';
+                    // Datos originales del archivo 2
+                    match.rowData.forEach(cell => {
+                        tableHTML += `<td>${cell}</td>`;
+                    });
+                    // Agregar información de la hoja y el mensaje
+                    tableHTML += `<td>${match.sheetName}</td>`;
+                    tableHTML += `<td><span class="status-delivered">${match.message}</span></td>`;
+                    tableHTML += '</tr>';
+                });
+                
+                tableHTML += '</tbody></table>';
+                resultTableContainer.innerHTML = tableHTML;
+            }
+            
+            resultsDiv.style.display = 'block';
+            
+            // Desplazar suavemente hacia los resultados
+            resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        
+        // Descargar los resultados en un archivo Excel
+        function downloadResults() {
+            if (matches.length === 0) {
+                alert('No hay resultados para descargar.');
+                return;
+            }
+            
+            try {
+                // Obtener los encabezados del archivo 2
+                const firstSheetName = file2Data.SheetNames[0];
+                const worksheet2 = file2Data.Sheets[firstSheetName];
+                const jsonData2 = XLSX.utils.sheet_to_json(worksheet2, { header: 1 });
+                const headers = jsonData2[0];
+                
+                // Agregar las nuevas columnas a los encabezados
+                const extendedHeaders = [...headers, 'Hoja de Origen', 'Estado'];
+                
+                // Preparar los datos para la hoja de cálculo
+                const resultData = matches.map(match => {
+                    return [...match.rowData, match.sheetName, match.message];
+                });
+                
+                // Crear una nueva hoja de trabajo con los resultados
+                const resultWorksheet = XLSX.utils.aoa_to_sheet([extendedHeaders, ...resultData]);
+                
+                // Crear un nuevo libro de trabajo
+                const newWorkbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(newWorkbook, resultWorksheet, 'Coincidencias');
+                
+                // Generar el archivo Excel y descargarlo
+                XLSX.writeFile(newWorkbook, 'coincidencias_encontradas.xlsx');
+                
+            } catch (error) {
+                alert('Error al generar el archivo de resultados: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
